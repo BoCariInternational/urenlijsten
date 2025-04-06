@@ -3,20 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System;
 using System.Drawing;
 using System.Windows.Forms;
-
-using System;
-using System.Linq;
+using CustomControls;
 
 namespace Urenlijsten_App
 {
     internal class FormUren : Form
     {
+        public static Image imageCalendar, imageAdd, imageDelete, imageEdit, imageUndo, imageOk;
+
+        private Image LoadIcon(string fileName)
+        {
+            try
+            {
+                string path = Path.Combine(Application.StartupPath, @"..\..\..\icons", fileName);
+                return Image.FromFile(path);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading icon {fileName}: {ex.Message}");
+                return new Bitmap(32, 32); // Return empty image as fallback
+            }
+        }
+
         public FormUren()
         {
             Initialize(); // Jouw eigen methode
+
+            // Load all icons (they're already 32x32)
+            imageCalendar = LoadIcon("calendar_400959.png");
+            imageAdd = LoadIcon("add.png");
+            imageDelete = LoadIcon("trash.png");
+            imageEdit = LoadIcon("note.png");
+            imageUndo = LoadIcon("icons8-undo-30.png"); // Will work even if 30x30
+            imageOk = LoadIcon("check.png");
         }
 
         private void Initialize()
@@ -45,7 +66,8 @@ namespace Urenlijsten_App
             table.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); // Submit (vaste hoogte)
 
             // Panels maken
-            var panelLogoNaam = CreatePanel(Color.LightBlue, "Logo-Naam");
+            var panelLogoNaam = new PanelLogo();
+
             var panelUren = CreatePanel(Color.LightGreen, "Uren");
             var panelVerlof = CreatePanel(Color.LightCoral, "Verlof");
             var panelSubmit = CreatePanel(Color.Gray, "Submit");
