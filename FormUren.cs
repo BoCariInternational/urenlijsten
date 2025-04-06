@@ -30,6 +30,12 @@ namespace Urenlijsten_App
         public FormUren()
         {
             Initialize(); // Jouw eigen methode
+        }
+
+        private void Initialize()
+        {
+            this.Text = "Urenlijst";
+            this.Size = new Size(1000, 1000); // Startgrootte
 
             // Load all icons (they're already 32x32)
             imageCalendar = LoadIcon("calendar_400959.png");
@@ -38,12 +44,6 @@ namespace Urenlijsten_App
             imageEdit = LoadIcon("note.png");
             imageUndo = LoadIcon("icons8-undo-30.png"); // Will work even if 30x30
             imageOk = LoadIcon("check.png");
-        }
-
-        private void Initialize()
-        {
-            this.Text = "Urenlijst";
-            this.Size = new Size(400, 600); // Startgrootte
 
             var table = new TableLayoutPanel
             {
@@ -57,11 +57,11 @@ namespace Urenlijsten_App
             table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
             // Voeg rijen toe aan de tabel
-            table.RowStyles.Add(new RowStyle(SizeType.AutoSize));  // Logo-Naam
+            table.RowStyles.Add(new RowStyle(SizeType.AutoSize));     // Logo-Naam
             table.RowStyles.Add(new RowStyle(SizeType.Absolute, 5));  // Spacer-1
-            table.RowStyles.Add(new RowStyle(SizeType.Percent, 60)); // Uren (grootste deel)
+            table.RowStyles.Add(new RowStyle(SizeType.Percent, 60));  // Uren (grootste deel)
             table.RowStyles.Add(new RowStyle(SizeType.Absolute, 5));  // Spacer-2
-            table.RowStyles.Add(new RowStyle(SizeType.Percent, 30)); // Verlof
+            table.RowStyles.Add(new RowStyle(SizeType.Percent, 30));  // Verlof
             table.RowStyles.Add(new RowStyle(SizeType.Absolute, 5));  // Spacer-3
             table.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); // Submit (vaste hoogte)
 
@@ -114,7 +114,6 @@ namespace Urenlijsten_App
         {
             return new Panel
             {
-                BackColor = Color.Transparent, // Onzichtbare spacer
                 Dock = DockStyle.Fill
             };
         }

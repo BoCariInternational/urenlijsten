@@ -21,8 +21,8 @@ namespace CustomControls
         {
             int buttonWidth = 100;
             int buttonHeight = 45;
-            Width = 500;
-            Height = 400;
+            Width = 730;
+            Height = 280;
             AutoSize = false;
 
             // Basis form instellingen
@@ -50,6 +50,7 @@ namespace CustomControls
             // Calendar
             calendar = new MonthCalendar
             {
+                CalendarDimensions = new Size(3, 1),
                 MaxSelectionCount = 1,
                 //Dock = DockStyle.Fill,
                 MinDate = CustomDateControl.MinDate,
@@ -57,8 +58,6 @@ namespace CustomControls
                 FirstDayOfWeek = Day.Monday,
                 ShowToday = false,
                 ShowTodayCircle = true,
-                //Width = 150,
-                //Height = 400
             };
 
             if (initialDate.HasValue)
@@ -72,7 +71,7 @@ namespace CustomControls
             {
                 Dock = DockStyle.Fill,
                 Height = 45,
-                BorderStyle = BorderStyle.FixedSingle
+                BorderStyle = BorderStyle.None
             };
 
             btnOK = new Button
@@ -81,7 +80,7 @@ namespace CustomControls
                 Text = "OK",
                 DialogResult = DialogResult.OK, // scheelt een event handler.
                 Image = FormUren.imageOk,
-                 ImageAlign = ContentAlignment.MiddleLeft,
+                ImageAlign = ContentAlignment.MiddleLeft,
                 Width = buttonWidth,
                 Height = buttonHeight,
                 Dock = DockStyle.Right,
@@ -99,7 +98,6 @@ namespace CustomControls
             vertLayoutManager.Controls.Add(spacer, 0, 1);
             vertLayoutManager.Controls.Add(buttonPanel, 0, 2);
 
-            calendar.CalendarDimensions = new Size(2, 2);
             Controls.Add(vertLayoutManager);
         }
     }// class CalendarForm
@@ -113,6 +111,16 @@ namespace CustomControls
 
         public static DateTime MinDate { get; } = new DateTime(1950, 1, 1);
         public static DateTime MaxDate { get; } = new DateTime(2100, 1, 1); // Still ongoing
+
+        public int PreferredHeight { get; set; } = 40; // Standaardwaarde
+
+        // Houd rekening met de PreferredHeight in je layout
+        public override Size GetPreferredSize(Size proposedSize)
+        {
+            var baseSize = base.GetPreferredSize(proposedSize);
+            return new Size(baseSize.Width, PreferredHeight);
+        }
+
         public string Date
         {
             get => txtDate.Text;
@@ -153,12 +161,16 @@ namespace CustomControls
                 //Dock = DockStyle.Right,
                 Anchor = AnchorStyles.Left,
                 AutoSize = false,
-                FlatStyle = FlatStyle.Standard,
+                FlatStyle = FlatStyle.Flat,
                 Image = FormUren.imageCalendar,
                 Name = "btnCalendar",
                 TabIndex = 1,
                 Text = "",
-                UseVisualStyleBackColor = true
+                UseVisualStyleBackColor = true,
+                FlatAppearance =
+                {
+                    BorderSize = 0, // Zet de BorderSize van de FlatAppearance op 0
+                }
             };
             this.Height = 35;
             btnCalendar.Location = new Point(txtDate.Width + 3, 0);
@@ -210,7 +222,7 @@ namespace CustomControls
             int day = 1, month = -1, year = -1;
 
             // Case 1: dd-mm-yy(yy)
-            if (dateParts.Length == 3)
+            if (dateParts.Length == 3 && Type == DateType.Full)
             {
                 if (!int.TryParse(dateParts[0], out day) || !int.TryParse(dateParts[1], out month) || !int.TryParse(dateParts[2], out year))
                 {
@@ -218,12 +230,16 @@ namespace CustomControls
                 }
             }
             // Case 2: mm-yy(yy)
-            else if (dateParts.Length == 2)
+            else if (dateParts.Length == 2 && Type == DateType.MonthYear)
             {
                 if (!int.TryParse(dateParts[0], out month) || !int.TryParse(dateParts[1], out year))
                 {
                     return null;
                 }
+            }
+            else
+            {
+                return null;
             }
 
             if (year < 100)
@@ -274,11 +290,18 @@ namespace CustomControls
 
         private void txtDate_KeyPress(object sender, KeyPressEventArgs e)
         {
+		//RR!
             // Sta cijfers, spatie, streepje en slash toe.
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) &&
                 (e.KeyChar != ' ') && (e.KeyChar != '-') && (e.KeyChar != '/'))
             {
                 e.Handled = true; // Negeer het teken.
+            }
+            // Als Enter is ingedrukt, roep Validate aan en set handled = true
+            else if (e.KeyChar == (char)Keys.Enter)
+            {
+                ValidateDate();        // Roep de Validate functie aan
+                e.Handled = false; // Doe de standaard actie van de Enter toets
             }
         }
     }// class CustomDateControl
