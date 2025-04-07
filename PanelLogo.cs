@@ -87,7 +87,7 @@ namespace CustomControls
                     new ColumnStyle(SizeType.Absolute, spacerWidth), // Spacer
                     new ColumnStyle(SizeType.AutoSize),              // Company
                     new ColumnStyle(SizeType.Absolute, spacerWidth), // Spacer
-                    new ColumnStyle(SizeType.Absolute, 110F),        // Radio group
+                    new ColumnStyle(SizeType.Absolute, 160F),        // Radio group
                     new ColumnStyle(SizeType.Percent, 100F),         // Stretch
                     new ColumnStyle(SizeType.AutoSize)               // panelNameWeek
                 },
@@ -153,23 +153,27 @@ namespace CustomControls
                 AutoSize = false,     // Laat de GroupBox zelf zijn hoogte bepalen
                 Dock = DockStyle.Top, // Gebruik Top i.p.v. Fill
                 Padding = new Padding(5),
-                Height = 80
+                Height = 80,
+                //Width = 250,
+                ClientSize = new Size(250,80)
             };
 
             rdoLogistics = new RadioButton
             {
-                Text = "Logistics",
+                Text = "BoCari Logistic Services B.V.",
                 Dock = DockStyle.Top,
                 Checked = true,
                 Margin = new Padding(0, 5, 0, 5)
             };
+            rdoLogistics.CheckedChanged += RadioButton_CheckedChanged;
 
             rdoInternational = new RadioButton
             {
-                Text = "International",
+                Text = "Bocari International",
                 Dock = DockStyle.Top,
                 Margin = new Padding(0, 0, 0, 5)
             };
+            rdoInternational.CheckedChanged += RadioButton_CheckedChanged;
 
             grpBedrijf.Controls.AddRange(new Control[] { rdoInternational, rdoLogistics });
             AddColumnToHLayout(grpBedrijf);
@@ -280,8 +284,18 @@ namespace CustomControls
             AddColumnToHLayout(panelNameWeek);
 
             this.PerformLayout();
+        }
 
-
+        private void RadioButton_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdoLogistics.Checked == true)
+            {
+                lblCompany.Text = "Logistics";
+            }
+            else if (rdoInternational.Checked == true)
+            {
+                lblCompany.Text = "International";
+            }
         }
 
         private void txtWeek_KeyPress(object sender, KeyPressEventArgs e)
@@ -367,7 +381,7 @@ namespace CustomControls
             AddColumnToHLayout(new Panel // spacer
             {
                 Dock = DockStyle.Fill,
-                //BackColor = Color.Bisque
+                BackColor = Color.Bisque
             });
         }
     }// class PanelLogo

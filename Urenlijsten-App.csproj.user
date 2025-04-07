@@ -4,6 +4,9 @@
     <Compile Update="CustomDateControl.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="FilteredComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="FormUren.cs">
       <SubType>Form</SubType>
     </Compile>

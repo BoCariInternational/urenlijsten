@@ -123,6 +123,8 @@ namespace Urenlijsten_App
         {
             string path = Path.Combine(Application.StartupPath, @"..\..\..\UrenlijstBLS.xlsx");
             path = Path.GetFullPath(path);  // normalized path without \..\
+
+            /*
             try
             {
                 ExcelAPI excel = new ExcelAPI(path);
@@ -138,6 +140,7 @@ namespace Urenlijsten_App
             {
                 MessageBox.Show($"Er is een fout opgetreden tijdens het maken van een excel sheet: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+            */
         }// BtnSubmit_Click
     }//class FormUren
 }
