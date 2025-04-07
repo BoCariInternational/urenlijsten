@@ -18,6 +18,7 @@ namespace Urenlijsten_App
             try
             {
                 string path = Path.Combine(Application.StartupPath, @"..\..\..\icons", fileName);
+                path = Path.GetFullPath(path);  // normalized path without \..\
                 return Image.FromFile(path);
             }
             catch (Exception ex)
@@ -120,8 +121,23 @@ namespace Urenlijsten_App
 
         private void BtnSubmit_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Formulier verzonden!", "Bevestiging", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+            string path = Path.Combine(Application.StartupPath, @"..\..\..\UrenlijstBLS.xlsx");
+            path = Path.GetFullPath(path);  // normalized path without \..\
+            try
+            {
+                ExcelAPI excel = new ExcelAPI(path);
 
-    }
+                excel.ModifyExcel();
+                excel.Save();
+
+                MessageBox.Show("Formulier verzonden!", "Bevestiging", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Er is een fout opgetreden tijdens het maken van een excel sheet: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }// BtnSubmit_Click
+    }//class FormUren
 }

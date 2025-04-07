@@ -98,11 +98,12 @@ namespace CustomControls
             // Column 0 - Image with proper aspect ratio
             try
             {
-                string imagePath = System.IO.Path.Combine(Application.StartupPath, @"..\..\..\icons\bocari.jpeg");
+                string path = System.IO.Path.Combine(Application.StartupPath, @"..\..\..\icons\bocari.jpeg");
+                path = Path.GetFullPath(path);  // normalized path without \..\
                 picLogo = new PictureBox
                 {
                     SizeMode = PictureBoxSizeMode.Zoom, // Maintain aspect ratio
-                    Image = Image.FromFile(imagePath),
+                    Image = Image.FromFile(path),
                     Height = panelHeight,               // Only set height
                     Dock = DockStyle.Fill
                 };
