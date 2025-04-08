@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Windows.Forms;
-using System.Data;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using CustomControls;
+using System.ComponentModel;
 
-namespace Urenlijsten_App
+// Vereiste interfaces
+public interface IShortNameable
 {
-    public class ProjectCode
-    {
-        public int Code { get; set; }
-        public string Description { get; set; }
-
-        // Override ToString for display in combobox
-        public override string ToString()
-        {
-            return $"{Code} - {Description}";
-        }
-    }
+    string ToString();      // Lange naam voor checkboxes
+    string ToStringShort(); // Korte naam voor textbox
 }
 
 namespace CustomControls
@@ -23,19 +18,19 @@ namespace CustomControls
     public class PanelUren : Panel
     {
         private DataGridView dataGridView1;
+        private List<ProjectItem> allProjects;
 
-        public PanelUren()
+        public PanelUren(List<ProjectItem> projects)
         {
+            this.allProjects = projects ?? throw new ArgumentNullException(nameof(projects));
             InitializeComponents();
         }
 
         private void InitializeComponents()
         {
-            // Panel setup
             this.Dock = DockStyle.Fill;
             this.BorderStyle = BorderStyle.FixedSingle;
 
-            // Create and configure DataGridView
             dataGridView1 = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -44,223 +39,234 @@ namespace CustomControls
                 ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
             };
 
-            // Add columns
             AddColumns();
-
-            // Add DataGridView to panel
             this.Controls.Add(dataGridView1);
+
+            dataGridView1.CellValidating += DataGridView1_CellValidating;
+            dataGridView1.EditingControlShowing += DataGridView1_EditingControlShowing;
+            dataGridView1.CellEndEdit += DataGridView1_CellEndEdit;
         }
 
         private void AddColumns()
         {
-            // Klantnaam column (string)
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "Klantnaam",
-                HeaderText = "Klantnaam",
-                DataPropertyName = "Klantnaam"
-            });
+            // Klantnaam
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Klantnaam", HeaderText = "Klantnaam" });
 
-            // Projecttype column (CheckedComboBox)
-            var projectTypeColumn = new DataGridViewColumn
+            // Projecttype (CheckedComboBox filter)
+            var typeColumn = new DataGridViewColumn
             {
                 Name = "Projecttype",
                 HeaderText = "Projecttype",
                 CellTemplate = new DataGridViewCheckedComboBoxCell()
             };
-            dataGridView1.Columns.Add(projectTypeColumn);
+            dataGridView1.Columns.Add(typeColumn);
 
-            // Projectnummer column (FilteredComboBox)
-            var projectNummerColumn = new DataGridViewColumn
+            // Projectnummer (FilteredComboBox)
+            var nummerColumn = new DataGridViewColumn
             {
                 Name = "Projectnummer",
                 HeaderText = "Projectnummer",
                 CellTemplate = new DataGridViewFilteredComboBoxCell()
             };
-            dataGridView1.Columns.Add(projectNummerColumn);
+            dataGridView1.Columns.Add(nummerColumn);
 
-            // km dienstreis column (numeric, integers only)
-            var kmColumn = new DataGridViewTextBoxColumn
+            // km dienstreis
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "kmDienstreis", HeaderText = "km dienstreis" });
+
+            // Dag columns
+            string[] days = { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
+            foreach (var day in days)
             {
-                Name = "kmDienstreis",
-                HeaderText = "km dienstreis",
-                DataPropertyName = "kmDienstreis"
-            };
-            dataGridView1.Columns.Add(kmColumn);
-
-            // Add day columns (Ma, Di, Wo, Do, Vr, Za, Zo)
-            AddDayColumn("Ma");
-            AddDayColumn("Di");
-            AddDayColumn("Wo");
-            AddDayColumn("Do");
-            AddDayColumn("Vr");
-            AddDayColumn("Za");
-            AddDayColumn("Zo");
-
-            // Totaal column (computed, read-only)
-            var totaalColumn = new DataGridViewTextBoxColumn
-            {
-                Name = "Totaal",
-                HeaderText = "Totaal",
-                ReadOnly = true,
-                DataPropertyName = "Totaal"
-            };
-            dataGridView1.Columns.Add(totaalColumn);
-
-            // Set up cell validation
-            dataGridView1.CellValidating += DataGridView1_CellValidating;
-            dataGridView1.EditingControlShowing += DataGridView1_EditingControlShowing;
-        }
-
-        private void AddDayColumn(string dayName)
-        {
-            var column = new DataGridViewTextBoxColumn
-            {
-                Name = dayName,
-                HeaderText = dayName,
-                DataPropertyName = dayName
-            };
-            dataGridView1.Columns.Add(column);
-        }
-
-        private void DataGridView1_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
-        {
-            // Validate km dienstreis column (must be integer)
-            if (dataGridView1.Columns[e.ColumnIndex].Name == "kmDienstreis")
-            {
-                if (!string.IsNullOrEmpty(e.FormattedValue.ToString()))
-                {
-                    if (!int.TryParse(e.FormattedValue.ToString(), out _))
-                    {
-                        e.Cancel = true;
-                        MessageBox.Show("Voer alleen hele getallen in voor km dienstreis.");
-                    }
-                }
+                dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = day, HeaderText = day });
             }
 
-            // Validate day columns (must be whole or half)
-            string[] days = { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
-            if (Array.Exists(days, day => day == dataGridView1.Columns[e.ColumnIndex].Name))
-            {
-                if (!string.IsNullOrEmpty(e.FormattedValue.ToString()))
-                {
-                    string value = e.FormattedValue.ToString();
+            // Totaal
+            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Totaal", HeaderText = "Totaal", ReadOnly = true });
+        }
 
-                    // Check for decimal point (only .5 allowed)
-                    if (value.Contains("."))
-                    {
-                        if (value != "0.5" && value != "1.5" && value != "2.5" &&
-                            value != "3.5" && value != "4.5" && value != "5.5" && value != "6.5" &&
-                            value != "7.5" && value != "8.5")
-                        {
-                            e.Cancel = true;
-                            MessageBox.Show("Voer alleen hele uren of .5 in voor halve uren.");
-                        }
-                    }
-                    else
-                    {
-                        if (!int.TryParse(value, out _))
-                        {
-                            e.Cancel = true;
-                            MessageBox.Show("Voer alleen cijfers in voor uren.");
-                        }
-                    }
-                }
+        private void DataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            // Als Projecttype verandert, reset Projectnummer
+            if (dataGridView1.Columns[e.ColumnIndex].Name == "Projecttype")
+            {
+                dataGridView1.Rows[e.RowIndex].Cells["Projectnummer"].Value = null;
             }
         }
 
         private void DataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
-            // Handle day columns to prevent typing after decimal point
-            string[] days = { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
-            var columnName = dataGridView1.Columns[dataGridView1.CurrentCell.ColumnIndex].Name;
+            string columnName = dataGridView1.Columns[dataGridView1.CurrentCell.ColumnIndex].Name;
 
-            if (Array.Exists(days, day => day == columnName) && e.Control is TextBox textBox)
+            if (columnName == "Projecttype" && e.Control is CheckedComboBox typeCombo)
             {
-                textBox.KeyPress += (s, ev) =>
-                {
-                    // Allow numbers, backspace, and single decimal point
-                    if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar) && ev.KeyChar != '.')
-                    {
-                        ev.Handled = true;
-                    }
+                // Configureer Projecttype CheckedComboBox
+                typeCombo.DataSource = allProjects
+                    .Select(p => p.ProjectTypeInt)
+                    .Distinct()
+                    .OrderBy(i => i)
+                    .ToList();
 
-                    // Only allow one decimal point
-                    if (ev.KeyChar == '.' && ((TextBox)s).Text.IndexOf('.') > -1)
-                    {
-                        ev.Handled = true;
-                    }
+                typeCombo.ValueSeparator = ",";
+            }
+            else if (columnName == "Projectnummer" && e.Control is FilteredComboBox<ProjectItem> nummerCombo)
+            {
+                // Haal geselecteerde types op
+                var typeCell = dataGridView1.CurrentRow.Cells["Projecttype"];
+                var selectedTypes = typeCell.Value?.ToString()?
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList() ?? new List<int>();
 
-                    // If there's already a decimal point, don't allow more input
-                    if (((TextBox)s).Text.Contains(".") &&
-                        ((TextBox)s).SelectionStart > ((TextBox)s).Text.IndexOf('.'))
-                    {
-                        ev.Handled = true;
-                    }
-                };
+                // Filter projecten op geselecteerde types
+                nummerCombo.DataSource = allProjects
+                    .Where(p => selectedTypes.Contains(p.ProjectTypeInt))
+                    .OrderBy(p => p.ProjectCode)
+                    .ToList();
+
+                nummerCombo.DisplayMember = "ToString";
+                nummerCombo.ValueMember = "ProjectCode";
             }
 
-            // Handle km column to allow only numbers
-            if (columnName == "kmDienstreis" && e.Control is TextBox kmTextBox)
+        // Validatie voor dagen en km
+        if ((columnName == "Ma" || columnName == "Di" || columnName == "Wo" || 
+             columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo") 
+            && e.Control is TextBox dayTextBox)
+        {
+            dayTextBox.KeyPress += (s, ev) =>
             {
-                kmTextBox.KeyPress += (s, ev) =>
+                if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar) && ev.KeyChar != '.')
                 {
-                    if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar))
-                    {
-                        ev.Handled = true;
-                    }
-                };
-            }
+                    ev.Handled = true;
+                    return;
+                }
+                
+                if (ev.KeyChar == '.' && dayTextBox.Text.Contains("."))
+                {
+                    ev.Handled = true;
+                    return;
+                }
+                
+                if (dayTextBox.Text.Contains(".") && 
+                    dayTextBox.SelectionStart > dayTextBox.Text.IndexOf('.'))
+                {
+                    ev.Handled = true;
+                }
+            };
+        }
+        
+        if (columnName == "kmDienstreis" && e.Control is TextBox kmTextBox)
+        {
+            kmTextBox.KeyPress += (s, ev) =>
+            {
+                if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar))
+                {
+                    ev.Handled = true;
+                }
+            };
         }
     }
-
-    // Custom cell classes for the specialized controls
-    public class DataGridViewCheckedComboBoxCell : DataGridViewTextBoxCell
+    
+    private void DataGridView1_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
     {
-        public DataGridViewCheckedComboBoxCell() : base()
+        string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
+        
+        // Validate km dienstreis
+        if (columnName == "kmDienstreis" && !string.IsNullOrEmpty(e.FormattedValue?.ToString()))
         {
-            // You would implement this to use the CheckedComboBox control
-            // This is a simplified placeholder
-        }
-
-        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue,
-            DataGridViewCellStyle dataGridViewCellStyle)
-        {
-            base.InitializeEditingControl(rowIndex, initialFormattedValue, dataGridViewCellStyle);
-            var ctrl = DataGridView.EditingControl as CheckboxComboBox;
-            if (ctrl != null)
+            if (!int.TryParse(e.FormattedValue.ToString(), out _))
             {
-                // Initialize the CheckedComboBox here
+                e.Cancel = true;
+                MessageBox.Show("Voer alleen hele getallen in voor km dienstreis.");
             }
         }
-
-        public override Type EditType => typeof(CheckboxComboBox);
-        public override Type ValueType => typeof(string);
-        public override object DefaultNewRowValue => null;
-    }
-
-    public class DataGridViewFilteredComboBoxCell : DataGridViewTextBoxCell
-    {
-        public DataGridViewFilteredComboBoxCell() : base()
+        
+        // Validate day columns
+        if (columnName == "Ma" || columnName == "Di" || columnName == "Wo" || 
+            columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo")
         {
-            // You would implement this to use the FilteredComboBox control
-            // This is a simplified placeholder
-        }
-
-        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue,
-            DataGridViewCellStyle dataGridViewCellStyle)
-        {
-            base.InitializeEditingControl(rowIndex, initialFormattedValue, dataGridViewCellStyle);
-            var ctrl = DataGridView.EditingControl as FilteredComboBox;
-            if (ctrl != null)
+            if (!string.IsNullOrEmpty(e.FormattedValue?.ToString()))
             {
-                // Initialize the FilteredComboBox here
+                string value = e.FormattedValue.ToString();
+                
+                if (value.Contains("."))
+                {
+                    if (!value.EndsWith(".5") || !double.TryParse(value, out _))
+                    {
+                        e.Cancel = true;
+                        MessageBox.Show("Alleen .5 is toegestaan voor halve uren");
+                    }
+                }
+                else if (!int.TryParse(value, out _))
+                {
+                    e.Cancel = true;
+                    MessageBox.Show("Voer alleen cijfers in voor uren");
+                }
             }
         }
-
-        public override Type EditType => typeof(FilteredComboBox);
-        public override Type ValueType => typeof(string);
-        public override object DefaultNewRowValue => null;
     }
 }
 
+    // ProjectItem class met alle vereiste properties
+    public class ProjectItem : IShortNameable
+    {
+        public int ProjectCode { get; set; }
+        public string ProjectType { get; set; }
+        public int ProjectTypeInt { get; set; } // Hash of unieke ID voor het type
+        public string Description { get; set; }
+
+        public string ToString() => $"{ProjectCode} - {Description}";
+        public string ToStringShort() => $"{ProjectCode}";
+    }
+
+    // CheckedComboBox cel implementatie
+    public class DataGridViewCheckedComboBoxCell : DataGridViewTextBoxCell
+    {
+        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue,
+            DataGridViewCellStyle cellStyle)
+        {
+            base.InitializeEditingControl(rowIndex, initialFormattedValue, cellStyle);
+
+            if (DataGridView.EditingControl is CheckedComboBox combo)
+            {
+                combo.ValueSeparator = ",";
+                if (initialFormattedValue != null)
+                {
+                    combo.SetItemsChecked(initialFormattedValue.ToString().Split(','));
+                }
+            }
+        }
+
+        public override Type EditType => typeof(CheckedComboBox);
+        public override Type ValueType => typeof(string);
+        public override object DefaultNewRowValue => string.Empty;
+    }
+
+    // FilteredComboBox cel implementatie
+    public class DataGridViewFilteredComboBoxCell : DataGridViewTextBoxCell
+    {
+        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue,
+            DataGridViewCellStyle cellStyle)
+        {
+            base.InitializeEditingControl(rowIndex, initialFormattedValue, cellStyle);
+
+            if (DataGridView.EditingControl is FilteredComboBox<ProjectItem> combo)
+            {
+                if (initialFormattedValue != null)
+                {
+                    combo.SelectedValue = initialFormattedValue;
+                }
+            }
+        }
+
+        protected override object GetFormattedValue(object value, int rowIndex,
+            ref DataGridViewCellStyle cellStyle, TypeConverter valueTypeConverter,
+            TypeConverter formattedValueTypeConverter, DataGridViewDataErrorContexts context)
+        {
+            return value?.ToString() ?? string.Empty;
+        }
+
+        public override Type EditType => typeof(FilteredComboBox<ProjectItem>);
+        public override Type ValueType => typeof(int);
+        public override object DefaultNewRowValue => null;
+    }
+}// namespace CustomControls

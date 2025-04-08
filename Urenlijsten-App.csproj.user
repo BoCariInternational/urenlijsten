@@ -4,9 +4,6 @@
     <Compile Update="CheckedComboBox.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Combined.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Update="CustomDateControl.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -17,6 +14,9 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="PanelLogo.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="PanelUren.cs">
       <SubType>Component</SubType>
     </Compile>
   </ItemGroup>
