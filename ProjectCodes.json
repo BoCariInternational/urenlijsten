@@ -1,0 +1,1573 @@
+{
+  "ProjectCodes": [
+    {
+      "Code": 10100,
+      "Type": "Process",
+      "Description": "BASIS OF DESIGN"
+    },
+    {
+      "Code": 10101,
+      "Type": "Process",
+      "Description": "Process Basis of Design (BOD)"
+    },
+    {
+      "Code": 10102,
+      "Type": "Process",
+      "Description": "Process Control philosophy "
+    },
+    {
+      "Code": 10103,
+      "Type": "Process",
+      "Description": "Heat tracing and insulation calculations"
+    },
+    {
+      "Code": 10200,
+      "Type": "Process",
+      "Description": "LISTS & DATASHEETS"
+    },
+    {
+      "Code": 10201,
+      "Type": "Process",
+      "Description": "Heat & Material Balance"
+    },
+    {
+      "Code": 10202,
+      "Type": "Process",
+      "Description": "Utility Consumption  List"
+    },
+    {
+      "Code": 10203,
+      "Type": "Process",
+      "Description": "Utility Balances"
+    },
+    {
+      "Code": 10204,
+      "Type": "Process",
+      "Description": "Fluid List"
+    },
+    {
+      "Code": 10205,
+      "Type": "Process",
+      "Description": "Effluent List   "
+    },
+    {
+      "Code": 10206,
+      "Type": "Process",
+      "Description": "Gaseous emissions list"
+    },
+    {
+      "Code": 10207,
+      "Type": "Process",
+      "Description": "Solid waste list"
+    },
+    {
+      "Code": 10208,
+      "Type": "Process",
+      "Description": "Hazardous Product List"
+    },
+    {
+      "Code": 10209,
+      "Type": "Process",
+      "Description": "Thermal Data Sheet for heat exchangers"
+    },
+    {
+      "Code": 10210,
+      "Type": "Process",
+      "Description": "Safety Valves relief discharge list"
+    },
+    {
+      "Code": 10211,
+      "Type": "Process",
+      "Description": "Battery Limit Interface"
+    },
+    {
+      "Code": 10300,
+      "Type": "Process",
+      "Description": "DRAWINGS"
+    },
+    {
+      "Code": 10301,
+      "Type": "Process",
+      "Description": "Process Description"
+    },
+    {
+      "Code": 10302,
+      "Type": "Process",
+      "Description": "Block Flow Diagram"
+    },
+    {
+      "Code": 10303,
+      "Type": "Process",
+      "Description": "Process Flow Diagrams (PFDs)"
+    },
+    {
+      "Code": 10304,
+      "Type": "Process",
+      "Description": "Legend Sheet Piping & Instrumentation Diagrams (P&IDs)"
+    },
+    {
+      "Code": 10305,
+      "Type": "Process",
+      "Description": "Piping & Instrumentation Diagrams (P&IDs)"
+    },
+    {
+      "Code": 10306,
+      "Type": "Process",
+      "Description": "Material Selection Diagram (MSD)"
+    },
+    {
+      "Code": 10307,
+      "Type": "Process",
+      "Description": "Process Operating Manual"
+    },
+    {
+      "Code": 10500,
+      "Type": "Process",
+      "Description": "Training"
+    },
+    {
+      "Code": 20100,
+      "Type": "Mechanical",
+      "Description": "BASIS OF DESIGN"
+    },
+    {
+      "Code": 20101,
+      "Type": "Mechanical",
+      "Description": "Mechanical Basis of Design (BOD) "
+    },
+    {
+      "Code": 20102,
+      "Type": "Mechanical",
+      "Description": "Mechanical  & Reliability equipment layout basis of design"
+    },
+    {
+      "Code": 20200,
+      "Type": "Mechanical",
+      "Description": "LISTS & DATASHEETS"
+    },
+    {
+      "Code": 20201,
+      "Type": "Mechanical",
+      "Description": "Equipment List"
+    },
+    {
+      "Code": 20202,
+      "Type": "Mechanical",
+      "Description": "Equipment Data Sheets Category L "
+    },
+    {
+      "Code": 20203,
+      "Type": "Mechanical",
+      "Description": "Equipment Data Sheets Category M "
+    },
+    {
+      "Code": 20204,
+      "Type": "Mechanical",
+      "Description": "Equipment Data Sheets Category C"
+    },
+    {
+      "Code": 20300,
+      "Type": "Mechanical",
+      "Description": "DRAWINGS"
+    },
+    {
+      "Code": 20301,
+      "Type": "Mechanical",
+      "Description": "Equipment Layout"
+    },
+    {
+      "Code": 20302,
+      "Type": "Mechanical",
+      "Description": "Approval  of equipment Drawings for Category L"
+    },
+    {
+      "Code": 20303,
+      "Type": "Mechanical",
+      "Description": "Approval of vendor documents"
+    },
+    {
+      "Code": 20400,
+      "Type": "Mechanical",
+      "Description": "TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 20401,
+      "Type": "Mechanical",
+      "Description": "Technical Details for Equipment Bid Packages Category L "
+    },
+    {
+      "Code": 20402,
+      "Type": "Mechanical",
+      "Description": "Technical Details for Equipment Bid Packages Category M "
+    },
+    {
+      "Code": 20403,
+      "Type": "Mechanical",
+      "Description": "Technical Details for Equipment Bid Packages Category C "
+    },
+    {
+      "Code": 20404,
+      "Type": "Mechanical",
+      "Description": "Technical Details for equipment Installation Bid Packages"
+    },
+    {
+      "Code": 20405,
+      "Type": "Mechanical",
+      "Description": "Equipment Technical Bids Tabulation Category L"
+    },
+    {
+      "Code": 20406,
+      "Type": "Mechanical",
+      "Description": "Equipment Technical Bids Tabulation  Category M"
+    },
+    {
+      "Code": 20407,
+      "Type": "Mechanical",
+      "Description": "Equipment Technical Bids Tabulation  Category C"
+    },
+    {
+      "Code": 20408,
+      "Type": "Mechanical",
+      "Description": "Mechanical Equipment Inspection Test Plan (ITPs)"
+    },
+    {
+      "Code": 20409,
+      "Type": "Mechanical",
+      "Description": "Final Vendor Data Books"
+    },
+    {
+      "Code": 20500,
+      "Type": "Mechanical",
+      "Description": "Training"
+    },
+    {
+      "Code": 30100,
+      "Type": "Piping",
+      "Description": "BASIS OF DESIGN"
+    },
+    {
+      "Code": 30101,
+      "Type": "Piping",
+      "Description": "Piping basis of design"
+    },
+    {
+      "Code": 30102,
+      "Type": "Piping",
+      "Description": "Pipe Class Specification"
+    },
+    {
+      "Code": 30103,
+      "Type": "Piping",
+      "Description": "Piping Design Standard"
+    },
+    {
+      "Code": 30104,
+      "Type": "Piping",
+      "Description": "Piping Stress basis of design"
+    },
+    {
+      "Code": 30105,
+      "Type": "Piping",
+      "Description": "Piping Supports basis of design"
+    },
+    {
+      "Code": 30106,
+      "Type": "Piping",
+      "Description": "Piping/Instr Steam Tracing basis of design"
+    },
+    {
+      "Code": 30107,
+      "Type": "Piping",
+      "Description": "Piping Stress Analysis Reports"
+    },
+    {
+      "Code": 30200,
+      "Type": "Piping",
+      "Description": "LISTS & DATASHEETS"
+    },
+    {
+      "Code": 30201,
+      "Type": "Piping",
+      "Description": "Line List"
+    },
+    {
+      "Code": 30202,
+      "Type": "Piping",
+      "Description": "Critical Line List"
+    },
+    {
+      "Code": 30203,
+      "Type": "Piping",
+      "Description": "Tie-in List"
+    },
+    {
+      "Code": 30205,
+      "Type": "Piping",
+      "Description": "Piping Special Items specification & Data Sheets"
+    },
+    {
+      "Code": 30206,
+      "Type": "Piping",
+      "Description": "Piping Stress Critical line list"
+    },
+    {
+      "Code": 30300,
+      "Type": "Piping",
+      "Description": "DRAWINGS"
+    },
+    {
+      "Code": 30301,
+      "Type": "Piping",
+      "Description": "Piping routing"
+    },
+    {
+      "Code": 30302,
+      "Type": "Piping",
+      "Description": "Piping general arrangement drawings"
+    },
+    {
+      "Code": 30303,
+      "Type": "Piping",
+      "Description": "Isometric Drawings"
+    },
+    {
+      "Code": 30304,
+      "Type": "Piping",
+      "Description": "3-D Models"
+    },
+    {
+      "Code": 30305,
+      "Type": "Piping",
+      "Description": "Tie-in Location Diagram"
+    },
+    {
+      "Code": 30306,
+      "Type": "Piping",
+      "Description": "Tie-in Sketches "
+    },
+    {
+      "Code": 30307,
+      "Type": "Piping",
+      "Description": "Demolition (P&ID & Isometrics/Photos) Drawings"
+    },
+    {
+      "Code": 30308,
+      "Type": "Piping",
+      "Description": "Piping Construction Standard drawings"
+    },
+    {
+      "Code": 30309,
+      "Type": "Piping",
+      "Description": "Piping Supports Construction Standard drawings"
+    },
+    {
+      "Code": 30400,
+      "Type": "Piping",
+      "Description": "TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 30401,
+      "Type": "Piping",
+      "Description": "Bulk Piping MTO"
+    },
+    {
+      "Code": 30402,
+      "Type": "Piping",
+      "Description": "Technical Details for Piping Material Bid Packages"
+    },
+    {
+      "Code": 30403,
+      "Type": "Piping",
+      "Description": "Technical Details for Piping Installation Bid Packages"
+    },
+    {
+      "Code": 30404,
+      "Type": "Piping",
+      "Description": "Technical Details for Piping Demolition Bid Packages "
+    },
+    {
+      "Code": 30405,
+      "Type": "Piping",
+      "Description": "Piping Inspection Test Plan (ITPs)"
+    },
+    {
+      "Code": 30406,
+      "Type": "Piping",
+      "Description": "Piping Technical Bids Tabs"
+    },
+    {
+      "Code": 30500,
+      "Type": "Piping",
+      "Description": "Training"
+    },
+    {
+      "Code": 40100,
+      "Type": "Architectural",
+      "Description": "BASIS OF DESIGN"
+    },
+    {
+      "Code": 40102,
+      "Type": "Architectural",
+      "Description": "Architectural Basis of design"
+    },
+    {
+      "Code": 40103,
+      "Type": "Architectural",
+      "Description": "Architectural design standards"
+    },
+    {
+      "Code": 40300,
+      "Type": "Architectural",
+      "Description": "DRAWINGS"
+    },
+    {
+      "Code": 40301,
+      "Type": "Architectural",
+      "Description": "Architectural Plan & Detail Drawings"
+    },
+    {
+      "Code": 40302,
+      "Type": "Architectural",
+      "Description": "Food Safety Zoning classification drawings"
+    },
+    {
+      "Code": 40400,
+      "Type": "Architectural",
+      "Description": "TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 40401,
+      "Type": "Architectural",
+      "Description": "Technical Details for Architectural Material Bid Packages "
+    },
+    {
+      "Code": 40402,
+      "Type": "Architectural",
+      "Description": "Technical Details for Architectural Construction Bid Packages "
+    },
+    {
+      "Code": 40403,
+      "Type": "Architectural",
+      "Description": "General description of buildings"
+    },
+    {
+      "Code": 40404,
+      "Type": "Architectural",
+      "Description": "ArchitecturalTechnical Bids Tabs"
+    },
+    {
+      "Code": 50100,
+      "Type": "Civil",
+      "Description": "BASIS OF DESIGN"
+    },
+    {
+      "Code": 50101,
+      "Type": "Civil",
+      "Description": "Civil Basis of design"
+    },
+    {
+      "Code": 50102,
+      "Type": "Civil",
+      "Description": "Civil design standards  : roads, undergrounds, concrete, "
+    },
+    {
+      "Code": 50103,
+      "Type": "Civil",
+      "Description": "General site description"
+    },
+    {
+      "Code": 50104,
+      "Type": "Civil",
+      "Description": "Calculation of Foundations, Piling and Concrete Structures"
+    },
+    {
+      "Code": 50105,
+      "Type": "Civil",
+      "Description": "Calculation of Underground network "
+    },
+    {
+      "Code": 50300,
+      "Type": "Civil",
+      "Description": "DRAWINGS"
+    },
+    {
+      "Code": 50301,
+      "Type": "Civil",
+      "Description": "Plot Plans"
+    },
+    {
+      "Code": 50302,
+      "Type": "Civil",
+      "Description": "Temporary Construction Site Layout"
+    },
+    {
+      "Code": 50303,
+      "Type": "Civil",
+      "Description": "Site Development - Earthworks, Roads, Fence drawings "
+    },
+    {
+      "Code": 50304,
+      "Type": "Civil",
+      "Description": "Underground Installation area drawings"
+    },
+    {
+      "Code": 50305,
+      "Type": "Civil",
+      "Description": "Foundations,  Piling and Concrete Structures construction drawings"
+    },
+    {
+      "Code": 50306,
+      "Type": "Civil",
+      "Description": "Demolition description works"
+    },
+    {
+      "Code": 50307,
+      "Type": "Civil",
+      "Description": "Demolitions Drawings"
+    },
+    {
+      "Code": 50308,
+      "Type": "Civil",
+      "Description": "Earthworks, Roads, Fence, Underground network: guide drawings"
+    },
+    {
+      "Code": 50400,
+      "Type": "Civil",
+      "Description": "TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 50401,
+      "Type": "Civil",
+      "Description": "Civil Material Take Off "
+    },
+    {
+      "Code": 50402,
+      "Type": "Civil",
+      "Description": "Technical Details for Civil Construction Bid Packages"
+    },
+    {
+      "Code": 50403,
+      "Type": "Civil",
+      "Description": "Technical Details for Topographical Survey Bid Packages "
+    },
+    {
+      "Code": 50404,
+      "Type": "Civil",
+      "Description": "Technical Details for Geotechnical Survey Bid Packages "
+    },
+    {
+      "Code": 50405,
+      "Type": "Civil",
+      "Description": "Technical Details for Site Survey Bid Packages "
+    },
+    {
+      "Code": 50406,
+      "Type": "Civil",
+      "Description": "Technical Details for Civil Demolition Bid Packages "
+    },
+    {
+      "Code": 50407,
+      "Type": "Civil",
+      "Description": "Civil Technical Bids Tabs"
+    },
+    {
+      "Code": 60100,
+      "Type": "Structural",
+      "Description": "BASIS OF DESIGN"
+    },
+    {
+      "Code": 60101,
+      "Type": "Structural",
+      "Description": "Structural Basis of design"
+    },
+    {
+      "Code": 60102,
+      "Type": "Structural",
+      "Description": "Structural design standards for steel, stairways, ladder,platforms, walkways,"
+    },
+    {
+      "Code": 60103,
+      "Type": "Structural",
+      "Description": "Structural Steel Calculations & Reports"
+    },
+    {
+      "Code": 60300,
+      "Type": "Structural",
+      "Description": "DRAWINGS"
+    },
+    {
+      "Code": 60301,
+      "Type": "Structural",
+      "Description": "Structural Demolitions Drawings"
+    },
+    {
+      "Code": 60302,
+      "Type": "Structural",
+      "Description": "Structural Steel Building Drawings"
+    },
+    {
+      "Code": 60303,
+      "Type": "Structural",
+      "Description": "Fireproofing Plan & Details Drawings"
+    },
+    {
+      "Code": 60400,
+      "Type": "Structural",
+      "Description": "TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 60401,
+      "Type": "Structural",
+      "Description": "Structural Material Take Off "
+    },
+    {
+      "Code": 60402,
+      "Type": "Structural",
+      "Description": "Technical Details for Structural Construction Bid Packages "
+    },
+    {
+      "Code": 60403,
+      "Type": "Structural",
+      "Description": "Technical Details for Structural Demolition Bid Packages "
+    },
+    {
+      "Code": 60404,
+      "Type": "Structural",
+      "Description": "Structural Technical Bids Tabs"
+    },
+    {
+      "Code": 70100,
+      "Type": "Electrical",
+      "Description": "BASIS OF DESIGN"
+    },
+    {
+      "Code": 70101,
+      "Type": "Electrical",
+      "Description": "Electrical basis of design"
+    },
+    {
+      "Code": 70102,
+      "Type": "Electrical",
+      "Description": "Electrical basis of design for packaged equipment"
+    },
+    {
+      "Code": 70103,
+      "Type": "Electrical",
+      "Description": "Operational Philosophy of the Electrical Network (Only required for complex electrical networks)"
+    },
+    {
+      "Code": 70104,
+      "Type": "Electrical",
+      "Description": "Grounding Installation Design Standard"
+    },
+    {
+      "Code": 70105,
+      "Type": "Electrical",
+      "Description": "Power Installation Design Standards"
+    },
+    {
+      "Code": 70106,
+      "Type": "Electrical",
+      "Description": "Lighting  Installation Design Standards"
+    },
+    {
+      "Code": 70107,
+      "Type": "Electrical",
+      "Description": "Load flow study"
+    },
+    {
+      "Code": 70108,
+      "Type": "Electrical",
+      "Description": "Short circuit study"
+    },
+    {
+      "Code": 70109,
+      "Type": "Electrical",
+      "Description": "Lighting Layout Calculations"
+    },
+    {
+      "Code": 70110,
+      "Type": "Electrical",
+      "Description": "Cable calculation "
+    },
+    {
+      "Code": 70111,
+      "Type": "Electrical",
+      "Description": "Grounding & Lightning calculation"
+    },
+    {
+      "Code": 70112,
+      "Type": "Electrical",
+      "Description": "Arc Flash Hazard Analysis"
+    },
+    {
+      "Code": 70113,
+      "Type": "Electrical",
+      "Description": "Lightning Risk Analysis"
+    },
+    {
+      "Code": 70200,
+      "Type": "Electrical",
+      "Description": "LISTS & DATASHEETS"
+    },
+    {
+      "Code": 70201,
+      "Type": "Electrical",
+      "Description": "Electrical Equipment Data Sheets Category L"
+    },
+    {
+      "Code": 70202,
+      "Type": "Electrical",
+      "Description": "Electrical Equipment Data Sheets Category M"
+    },
+    {
+      "Code": 70203,
+      "Type": "Electrical",
+      "Description": "Electrical Equipment Data Sheets Category C"
+    },
+    {
+      "Code": 70204,
+      "Type": "Electrical",
+      "Description": "Consumer list & load summary"
+    },
+    {
+      "Code": 70205,
+      "Type": "Electrical",
+      "Description": "Cable schedules"
+    },
+    {
+      "Code": 70206,
+      "Type": "Electrical",
+      "Description": "Panel Schedules"
+    },
+    {
+      "Code": 70300,
+      "Type": "Electrical",
+      "Description": "DRAWINGS"
+    },
+    {
+      "Code": 70301,
+      "Type": "Electrical",
+      "Description": "Single Line Diagrams"
+    },
+    {
+      "Code": 70302,
+      "Type": "Electrical",
+      "Description": "Single Line Diagram Control Supply"
+    },
+    {
+      "Code": 70303,
+      "Type": "Electrical",
+      "Description": "Circuit Diagrams "
+    },
+    {
+      "Code": 70304,
+      "Type": "Electrical",
+      "Description": "Cable Routing"
+    },
+    {
+      "Code": 70305,
+      "Type": "Electrical",
+      "Description": "Electrical room layout"
+    },
+    {
+      "Code": 70306,
+      "Type": "Electrical",
+      "Description": "Grounding & Lightning Plans"
+    },
+    {
+      "Code": 70307,
+      "Type": "Electrical",
+      "Description": "Lighting circuits block diagram"
+    },
+    {
+      "Code": 70308,
+      "Type": "Electrical",
+      "Description": "Lighting Plans & power socket outlets "
+    },
+    {
+      "Code": 70309,
+      "Type": "Electrical",
+      "Description": "Temporary Construction Power Supply"
+    },
+    {
+      "Code": 70310,
+      "Type": "Electrical",
+      "Description": "Cable vault Substation / Electrical room"
+    },
+    {
+      "Code": 70400,
+      "Type": "Electrical",
+      "Description": "TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 70401,
+      "Type": "Electrical",
+      "Description": "Technical Details for Electrical Equipment Bid Packages Category L"
+    },
+    {
+      "Code": 70402,
+      "Type": "Electrical",
+      "Description": "Technical Details for Electrical Equipment Bid Packages Category M"
+    },
+    {
+      "Code": 70403,
+      "Type": "Electrical",
+      "Description": "Technical Details for Electrical Equipment Bid Packages Category C"
+    },
+    {
+      "Code": 70404,
+      "Type": "Electrical",
+      "Description": "Technical Details for Electrical Demolition Bid Packages "
+    },
+    {
+      "Code": 70405,
+      "Type": "Electrical",
+      "Description": "Technical Details for Electrical Installation Bid Packages "
+    },
+    {
+      "Code": 70406,
+      "Type": "Electrical",
+      "Description": "Technical Details for Cathodic Protection Bid Packages "
+    },
+    {
+      "Code": 70407,
+      "Type": "Electrical",
+      "Description": "Technical Details for Electrical Heat trace Bid Packages"
+    },
+    {
+      "Code": 70408,
+      "Type": "Electrical",
+      "Description": "Electrical Technical Bids Tabs"
+    },
+    {
+      "Code": 70409,
+      "Type": "Electrical",
+      "Description": "Electrical Equipment Inspection Test Plan (ITPs)"
+    },
+    {
+      "Code": 70500,
+      "Type": "Electrical",
+      "Description": "Training"
+    },
+    {
+      "Code": 80100,
+      "Type": "Instrumentation",
+      "Description": "BASIS OF DESIGN"
+    },
+    {
+      "Code": 80101,
+      "Type": "Instrumentation",
+      "Description": "Instrumentation Basis of Design"
+    },
+    {
+      "Code": 80102,
+      "Type": "Instrumentation",
+      "Description": "Instrument Installation Basis of Design"
+    },
+    {
+      "Code": 80103,
+      "Type": "Instrumentation",
+      "Description": "Hook ups Standards"
+    },
+    {
+      "Code": 80104,
+      "Type": "Instrumentation",
+      "Description": "Instrument Installation Standards"
+    },
+    {
+      "Code": 80105,
+      "Type": "Instrumentation",
+      "Description": "Instrument Air Consumption Calculation"
+    },
+    {
+      "Code": 80106,
+      "Type": "Instrumentation",
+      "Description": "Instrumentation Typical Loop Diagrams"
+    },
+    {
+      "Code": 80107,
+      "Type": "Instrumentation",
+      "Description": "Instrumentation Electrical Power Consumption Calculation"
+    },
+    {
+      "Code": 80108,
+      "Type": "Instrumentation",
+      "Description": "Electrical/Instrumentation Interface wiring diagram"
+    },
+    {
+      "Code": 80109,
+      "Type": "Instrumentation",
+      "Description": "Instrument support mounting special details"
+    },
+    {
+      "Code": 80110,
+      "Type": "Instrumentation",
+      "Description": "Instrumentation numbering and symbolisation procedure"
+    },
+    {
+      "Code": 80111,
+      "Type": "Instrumentation",
+      "Description": "Instrument & Telecom earthing principle diagram"
+    },
+    {
+      "Code": 80200,
+      "Type": "Instrumentation",
+      "Description": "LISTS & DATASHEETS"
+    },
+    {
+      "Code": 80201,
+      "Type": "Instrumentation",
+      "Description": "Instrument Data Sheets"
+    },
+    {
+      "Code": 80202,
+      "Type": "Instrumentation",
+      "Description": "Analyzer Data Sheet & Specifications"
+    },
+    {
+      "Code": 80203,
+      "Type": "Instrumentation",
+      "Description": "Instrument list"
+    },
+    {
+      "Code": 80204,
+      "Type": "Instrumentation",
+      "Description": "Cable schedule"
+    },
+    {
+      "Code": 80205,
+      "Type": "Instrumentation",
+      "Description": "Control & Safety Systems I/O List"
+    },
+    {
+      "Code": 80300,
+      "Type": "Instrumentation",
+      "Description": "DRAWINGS"
+    },
+    {
+      "Code": 80301,
+      "Type": "Instrumentation",
+      "Description": "Control & Equipment Room Layout Drawings"
+    },
+    {
+      "Code": 80302,
+      "Type": "Instrumentation",
+      "Description": "Power Distribution Single Line Diagram for instrumentation"
+    },
+    {
+      "Code": 80303,
+      "Type": "Instrumentation",
+      "Description": "Loop Drawings"
+    },
+    {
+      "Code": 80304,
+      "Type": "Instrumentation",
+      "Description": "Instrument, Junction boxes/RIO's and local panel layout"
+    },
+    {
+      "Code": 80305,
+      "Type": "Instrumentation",
+      "Description": "Instrument and Junction boxes wiring diagram "
+    },
+    {
+      "Code": 80306,
+      "Type": "Instrumentation",
+      "Description": "Instrument air layout drawings"
+    },
+    {
+      "Code": 80307,
+      "Type": "Instrumentation",
+      "Description": "Hook up's drawings "
+    },
+    {
+      "Code": 80308,
+      "Type": "Instrumentation",
+      "Description": "Analyser sample lines layout"
+    },
+    {
+      "Code": 80309,
+      "Type": "Instrumentation",
+      "Description": "Control and technical room cable routing and entries drawing"
+    },
+    {
+      "Code": 80310,
+      "Type": "Instrumentation",
+      "Description": "Main cable routing"
+    },
+    {
+      "Code": 80311,
+      "Type": "Instrumentation",
+      "Description": "Demolition Drawings"
+    },
+    {
+      "Code": 80400,
+      "Type": "Instrumentation",
+      "Description": "TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 80401,
+      "Type": "Instrumentation",
+      "Description": "Technical Details for Instrumentation Bid Packages "
+    },
+    {
+      "Code": 80402,
+      "Type": "Instrumentation",
+      "Description": "MTO Instruments Bulk (Process and air connection material, Cable, Cable trays, JB's/RIO and all accessories)"
+    },
+    {
+      "Code": 80403,
+      "Type": "Instrumentation",
+      "Description": "Technical Details for Instrumentation Installation Bid Packages "
+    },
+    {
+      "Code": 80404,
+      "Type": "Instrumentation",
+      "Description": "Instrumentation Technical Bids Tabs"
+    },
+    {
+      "Code": 80405,
+      "Type": "Instrumentation",
+      "Description": "Inspection Test Plan (ITPs)"
+    },
+    {
+      "Code": 80500,
+      "Type": "Instrumentation",
+      "Description": "Training"
+    },
+    {
+      "Code": 90100,
+      "Type": "Automation",
+      "Description": "BASIS OF DESIGN"
+    },
+    {
+      "Code": 90101,
+      "Type": "Automation",
+      "Description": "Automation basis of design\n"
+    },
+    {
+      "Code": 90102,
+      "Type": "Automation",
+      "Description": "User Requirement Specification\n"
+    },
+    {
+      "Code": 90103,
+      "Type": "Automation",
+      "Description": "System Layout (part of URS)"
+    },
+    {
+      "Code": 90104,
+      "Type": "Automation",
+      "Description": "Functional Design Specification (FDS)\n"
+    },
+    {
+      "Code": 90105,
+      "Type": "Automation",
+      "Description": "Control Narratives (part of FDS)"
+    },
+    {
+      "Code": 90106,
+      "Type": "Automation",
+      "Description": "FDS Test Plan & Validation (part of FDS)"
+    },
+    {
+      "Code": 90107,
+      "Type": "Automation",
+      "Description": "SDS Test Plan & Validation (part of FDS)"
+    },
+    {
+      "Code": 90108,
+      "Type": "Automation",
+      "Description": "Cause and Effect Diagram (part of FDS)"
+    },
+    {
+      "Code": 90109,
+      "Type": "Automation",
+      "Description": "Software Design Specification (SDS)"
+    },
+    {
+      "Code": 90110,
+      "Type": "Automation",
+      "Description": "Hardware Design Specification (HDS)"
+    },
+    {
+      "Code": 90111,
+      "Type": "Automation",
+      "Description": "Safety Requirements Specifications (SRS)"
+    },
+    {
+      "Code": 90112,
+      "Type": "Automation",
+      "Description": "Cybersecurity assessment"
+    },
+    {
+      "Code": 90113,
+      "Type": "Automation",
+      "Description": "FAT (Factory Acceptance Test)"
+    },
+    {
+      "Code": 90114,
+      "Type": "Automation",
+      "Description": "SAT (Site Acceptance Test)"
+    },
+    {
+      "Code": 90115,
+      "Type": "Automation",
+      "Description": "SIT (Site Integration Test)"
+    },
+    {
+      "Code": 90116,
+      "Type": "Automation",
+      "Description": "Verification Calculation of Safety Integrity Levels (SIL)  for Safety Instrumented Functions"
+    },
+    {
+      "Code": 90200,
+      "Type": "Automation",
+      "Description": "LISTS & DATASHEETS"
+    },
+    {
+      "Code": 90201,
+      "Type": "Automation",
+      "Description": "Configuration data base (part of FDS)"
+    },
+    {
+      "Code": 90300,
+      "Type": "Automation",
+      "Description": "DRAWINGS"
+    },
+    {
+      "Code": 90301,
+      "Type": "Automation",
+      "Description": "Current state MOM mapping"
+    },
+    {
+      "Code": 90302,
+      "Type": "Automation",
+      "Description": "Proposed future state MOM mapping"
+    },
+    {
+      "Code": 90303,
+      "Type": "Automation",
+      "Description": "Future state MOM design"
+    },
+    {
+      "Code": 90304,
+      "Type": "Automation",
+      "Description": "Control Loop Diagrams (part of FDS)"
+    },
+    {
+      "Code": 90305,
+      "Type": "Automation",
+      "Description": "System Drawing, Architecture (part of FDS)"
+    },
+    {
+      "Code": 90306,
+      "Type": "Automation",
+      "Description": "Graphic display (part of FDS)"
+    },
+    {
+      "Code": 90307,
+      "Type": "Automation",
+      "Description": "Demolition Drawings "
+    },
+    {
+      "Code": 90400,
+      "Type": "Automation",
+      "Description": "TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 90401,
+      "Type": "Automation",
+      "Description": "Technical Details for Automation Hardware  Bid Packages "
+    },
+    {
+      "Code": 90402,
+      "Type": "Automation",
+      "Description": "Technical Details for Automation Safety System Hardware Bid Packages"
+    },
+    {
+      "Code": 90403,
+      "Type": "Automation",
+      "Description": "Technical Details for system integrator Bid Packages "
+    },
+    {
+      "Code": 90404,
+      "Type": "Automation",
+      "Description": "Inspection Test Plan (ITPs)"
+    },
+    {
+      "Code": 90500,
+      "Type": "Automation",
+      "Description": "Training"
+    },
+    {
+      "Code": 100100,
+      "Type": "Multiple",
+      "Description": "FIRE PROTECTION BASIS OF DESIGN"
+    },
+    {
+      "Code": 100101,
+      "Type": "Multiple",
+      "Description": "Fire Protection Basis of Design "
+    },
+    {
+      "Code": 100102,
+      "Type": "Multiple",
+      "Description": "Firewater and foam demand"
+    },
+    {
+      "Code": 100103,
+      "Type": "Multiple",
+      "Description": "Preliminary hydraulic calculations"
+    },
+    {
+      "Code": 100104,
+      "Type": "Multiple",
+      "Description": "Fireproofing calcutaion note"
+    },
+    {
+      "Code": 100105,
+      "Type": "Multiple",
+      "Description": "Exhaust fumes calculation note"
+    },
+    {
+      "Code": 100106,
+      "Type": "Multiple",
+      "Description": "Safety Equipment specification"
+    },
+    {
+      "Code": 100107,
+      "Type": "Multiple",
+      "Description": "Preliminary equipment list concerned by Atex directive"
+    },
+    {
+      "Code": 100108,
+      "Type": "Multiple",
+      "Description": "Noisy Equipment List"
+    },
+    {
+      "Code": 100109,
+      "Type": "Multiple",
+      "Description": "Explosion and Fire modelling"
+    },
+    {
+      "Code": 100200,
+      "Type": "Multiple",
+      "Description": "FIRE PROTECTION LISTS & DATASHEETS"
+    },
+    {
+      "Code": 100201,
+      "Type": "Multiple",
+      "Description": "Data sheets for Safety and Fire Protection equipment "
+    },
+    {
+      "Code": 100202,
+      "Type": "Multiple",
+      "Description": "Fire Protection system line list"
+    },
+    {
+      "Code": 100203,
+      "Type": "Multiple",
+      "Description": "Fire Protection Tie-in list"
+    },
+    {
+      "Code": 100300,
+      "Type": "Multiple",
+      "Description": "FIRE PROTECTION DRAWINGS"
+    },
+    {
+      "Code": 100301,
+      "Type": "Multiple",
+      "Description": "Fire Protection PIDs"
+    },
+    {
+      "Code": 100302,
+      "Type": "Multiple",
+      "Description": "Overall firewater network drawing"
+    },
+    {
+      "Code": 100303,
+      "Type": "Multiple",
+      "Description": "Fire protection and personnel protection drawings"
+    },
+    {
+      "Code": 100304,
+      "Type": "Multiple",
+      "Description": "Fire zones (fire compartments) drawings"
+    },
+    {
+      "Code": 100305,
+      "Type": "Multiple",
+      "Description": "Fireproofing drawings"
+    },
+    {
+      "Code": 100306,
+      "Type": "Multiple",
+      "Description": "Escape ways drawings"
+    },
+    {
+      "Code": 100307,
+      "Type": "Multiple",
+      "Description": "Fire and gas detection drawings"
+    },
+    {
+      "Code": 100400,
+      "Type": "Multiple",
+      "Description": "FIRE PROTECTION TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 100401,
+      "Type": "Multiple",
+      "Description": "Technical Details for Safety and Fire Protection Equipment Bid Packages "
+    },
+    {
+      "Code": 100402,
+      "Type": "Multiple",
+      "Description": "Technical Details for Fire Protection Installation Bid Packages "
+    },
+    {
+      "Code": 100403,
+      "Type": "Multiple",
+      "Description": "Fire Protection Technical Bids Tabs"
+    },
+    {
+      "Code": 110100,
+      "Type": "Multiple",
+      "Description": "EHS, FSQR & IT BASIS OF DESIGN"
+    },
+    {
+      "Code": 110101,
+      "Type": "Multiple",
+      "Description": "Environmental Basis of Design"
+    },
+    {
+      "Code": 110102,
+      "Type": "Multiple",
+      "Description": "FSQR Basis of Design"
+    },
+    {
+      "Code": 110103,
+      "Type": "Multiple",
+      "Description": "Waste water list"
+    },
+    {
+      "Code": 110104,
+      "Type": "Multiple",
+      "Description": "Painting / Insulation  basis of design "
+    },
+    {
+      "Code": 110105,
+      "Type": "Multiple",
+      "Description": "Noise study"
+    },
+    {
+      "Code": 110106,
+      "Type": "Multiple",
+      "Description": "Hazardous area classification drawings "
+    },
+    {
+      "Code": 110107,
+      "Type": "Multiple",
+      "Description": "Telecom System basis of design"
+    },
+    {
+      "Code": 110108,
+      "Type": "Multiple",
+      "Description": "Server Room Layout Drawings"
+    },
+    {
+      "Code": 110200,
+      "Type": "Multiple",
+      "Description": "LISTS & DATASHEETS"
+    },
+    {
+      "Code": 110201,
+      "Type": "Multiple",
+      "Description": "Hazardous equipment table"
+    },
+    {
+      "Code": 120100,
+      "Type": "Multiple",
+      "Description": "HVAC BASIS OF DESIGN"
+    },
+    {
+      "Code": 120101,
+      "Type": "Multiple",
+      "Description": "HVAC basis of design "
+    },
+    {
+      "Code": 120102,
+      "Type": "Multiple",
+      "Description": "HVAC Heat & Material Balance"
+    },
+    {
+      "Code": 120103,
+      "Type": "Multiple",
+      "Description": "HVAC Utility Balances"
+    },
+    {
+      "Code": 120104,
+      "Type": "Multiple",
+      "Description": "HVAC zoning class"
+    },
+    {
+      "Code": 120300,
+      "Type": "Multiple",
+      "Description": "HVAC DRAWINGS"
+    },
+    {
+      "Code": 120301,
+      "Type": "Multiple",
+      "Description": "Aerolic / Hydrolic PFD"
+    },
+    {
+      "Code": 120302,
+      "Type": "Multiple",
+      "Description": "Aerolic / Hydrolic PID"
+    },
+    {
+      "Code": 120303,
+      "Type": "Multiple",
+      "Description": "HVAC equipment layout"
+    },
+    {
+      "Code": 120304,
+      "Type": "Multiple",
+      "Description": "Ducts distribution (single line)"
+    },
+    {
+      "Code": 120305,
+      "Type": "Multiple",
+      "Description": "Ducts distribution "
+    },
+    {
+      "Code": 120400,
+      "Type": "Multiple",
+      "Description": "HVAC TECHNICAL DETAILS FOR BID PACKAGES"
+    },
+    {
+      "Code": 120401,
+      "Type": "Multiple",
+      "Description": "Technical Details for HVAC Installation Bid Packages "
+    },
+    {
+      "Code": 120402,
+      "Type": "Multiple",
+      "Description": "HVAC Technical Bids Tabs"
+    },
+    {
+      "Code": 150100,
+      "Type": "ProjectManagment",
+      "Description": "Project Controls"
+    },
+    {
+      "Code": 150101,
+      "Type": "ProjectManagment",
+      "Description": "Project Control Plan"
+    },
+    {
+      "Code": 150102,
+      "Type": "ProjectManagment",
+      "Description": "Overall project schedule incl. manhours"
+    },
+    {
+      "Code": 150103,
+      "Type": "ProjectManagment",
+      "Description": "Cost Estimate"
+    },
+    {
+      "Code": 150104,
+      "Type": "ProjectManagment",
+      "Description": "Cost Estimate report "
+    },
+    {
+      "Code": 150200,
+      "Type": "ProjectManagment",
+      "Description": "REVIEW & REPORTS"
+    },
+    {
+      "Code": 150201,
+      "Type": "ProjectManagment",
+      "Description": "Monthly reports"
+    },
+    {
+      "Code": 150202,
+      "Type": "ProjectManagment",
+      "Description": "Progress & Performance Reports /Planning incl manhours"
+    },
+    {
+      "Code": 150203,
+      "Type": "ProjectManagment",
+      "Description": "30% Detailed Engineering Review / 3D Model review"
+    },
+    {
+      "Code": 150204,
+      "Type": "ProjectManagment",
+      "Description": "60% Detailed Engineering Review / 3D Model review"
+    },
+    {
+      "Code": 150205,
+      "Type": "ProjectManagment",
+      "Description": "90% Detailed Engineering Review / 3D Model review"
+    },
+    {
+      "Code": 150300,
+      "Type": "IT/OT",
+      "Description": "IT/ OT softwate developement"
+    },
+    {
+      "Code": 150400,
+      "Type": "ProjectManagment",
+      "Description": "Inkoopproces"
+    },
+    {
+      "Code": 150500,
+      "Type": "ProjectManagment",
+      "Description": "Training algemeen"
+    },
+    {
+      "Code": 150600,
+      "Type": "ProjectManagment",
+      "Description": "Document control"
+    },
+    {
+      "Code": 150700,
+      "Type": "ProjectManagment",
+      "Description": "Finance"
+    },
+    {
+      "Code": 200000,
+      "Type": "ProjectManagment",
+      "Description": "Werving & Selectie / Acquisitie"
+    },
+    {
+      "Code": 200100,
+      "Type": "ProjectManagment",
+      "Description": "HRM / Marketing"
+    },
+    {
+      "Code": 200200,
+      "Type": "ProjectManagment",
+      "Description": "Interne meetings"
+    },
+    {
+      "Code": 200300,
+      "Type": "ProjectManagment",
+      "Description": "Project meetings"
+    }
+  ],
+  "ProjectTypes": [
+    "Architectural",
+    "Automation",
+    "Civil",
+    "Electrical",
+    "Instrumentation",
+    "IT/OT",
+    "Mechanical",
+    "Multiple",
+    "Piping",
+    "Process",
+    "ProjectManagment",
+    "Structural"
+  ]
+}
