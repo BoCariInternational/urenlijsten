@@ -12,7 +12,7 @@ namespace CustomControls
         string ToStringShort(); // Short name for textbox
     }
 
-    public class CheckboxComboBox : UserControl
+    public class CheckedComboBox : UserControl
     {
         // Child controls
         private readonly TextBox _textBox = new() { ReadOnly = true };
@@ -24,7 +24,7 @@ namespace CustomControls
         // Data
         private Func<object, string> _shortNameSelector = x => x.ToString()!;
 
-        public CheckboxComboBox()
+        public CheckedComboBox()
         {
             InitializeComponents();
             WireEvents();
@@ -57,23 +57,54 @@ namespace CustomControls
             _toolTip.InitialDelay = 500;
         }
 
-        public void SetCheckedItems(List<int> typeInts)
+        public void ClearSelections()
         {
             for (int i = 0; i < _checkedListBox.Items.Count; i++)
             {
-                var item = (ProjectTypeWrapper)_checkedListBox.Items[i];
-                _checkedListBox.SetItemChecked(i, typeInts.Contains(item.TypeInt));
+                _checkedListBox.SetItemChecked(i, false);
             }
             UpdateTextDisplay();
         }
 
-        public string GetCheckedValues()
+        public void SelectAll()
         {
-            return string.Join(",",
-                _checkedListBox.CheckedItems
-                    .Cast<ProjectTypeWrapper>()
-                    .Select(w => w.TypeInt));
+            for (int i = 0; i < _checkedListBox.Items.Count; i++)
+            {
+                _checkedListBox.SetItemChecked(i, true);
+            }
+            UpdateTextDisplay();
         }
+
+        public void SetCheckedItems(List<string> selectedItems)
+        {
+            ClearSelections();
+
+            for (int i = 0; i < _checkedListBox.Items.Count; i++)
+            {
+                if (_checkedListBox.Items[i] is IShortNameable item)
+                {
+                    _checkedListBox.SetItemChecked(i, selectedItems.Contains(item.ToString()));
+                }
+            }
+            UpdateTextDisplay();
+        }
+
+        public List<string> GetCheckedValues()
+        {
+            return _checkedListBox.CheckedItems
+                .Cast<IShortNameable>()
+                .Select(w => w.ToString())
+                .ToList();
+        }
+
+        public List<string> GetCheckedValuesShort()
+        {
+            return _checkedListBox.CheckedItems
+                .Cast<IShortNameable>()
+                .Select(w => w.ToStringShort())
+                .ToList();
+        }
+
 
         // ---- Focus & Dropdown Management ----
         private void WireEvents()
@@ -139,9 +170,7 @@ namespace CustomControls
         // ---- Text Display ----
         private void UpdateTextDisplay()
         {
-            var selected = _checkedListBox.CheckedItems
-                .Cast<IShortNameable>()
-                .Select(x => x.ToStringShort());
+            var selected = GetCheckedValuesShort();
 
             string fullText = string.Join(", ", selected);
             _textBox.Text = TextHelpers.TruncateWithEllipsis(fullText, _textBox.Font, _textBox.Width - 10);

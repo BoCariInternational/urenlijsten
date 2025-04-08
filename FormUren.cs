@@ -68,8 +68,7 @@ namespace Urenlijsten_App
 
             // Panels maken
             var panelLogoNaam = new PanelLogo();
-
-            var panelUren = CreatePanel(Color.LightGreen, "Uren");
+            var panelUren = new PanelUren();
             var panelVerlof = CreatePanel(Color.LightCoral, "Verlof");
             var panelSubmit = CreatePanel(Color.Gray, "Submit");
             //panelSubmit.Height = 40;
