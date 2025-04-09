@@ -6,12 +6,33 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.Windows.Forms;
 using CustomControls;
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Draw = System.Drawing;
 
 namespace Urenlijsten_App
 {
-    internal class FormUren : Form
+    public static class DataGridViewExtensions
+    {
+        public static int GetColumnIndexByHeader(this DataGridView dataGridView, string headerText)
+        {
+            for (int i = 0; i < dataGridView.Columns.Count; i++)
+            {
+                if (dataGridView.Columns[i].HeaderText != null && dataGridView.Columns[i].HeaderText.StartsWith(headerText, StringComparison.OrdinalIgnoreCase))
+                {
+                    return i; // Het kolomnummer (de index) is gevonden
+                }
+            }
+            return -1; // De kolom met de opgegeven header is niet gevonden
+        }
+    }
+
+
+    public class FormUren : Form
     {
         public static Image imageCalendar, imageAdd, imageDelete, imageEdit, imageUndo, imageOk;
+        public PanelLogo panelLogoNaam;
+        public PanelUren panelUren;
 
         private Image LoadIcon(string fileName)
         {
@@ -67,10 +88,10 @@ namespace Urenlijsten_App
             table.RowStyles.Add(new RowStyle(SizeType.Absolute, 40)); // Submit (vaste hoogte)
 
             // Panels maken
-            var panelLogoNaam = new PanelLogo();
-            var panelUren = new PanelUren();
-            var panelVerlof = CreatePanel(Color.LightCoral, "Verlof");
-            var panelSubmit = CreatePanel(Color.Gray, "Submit");
+            panelLogoNaam = new PanelLogo();
+            panelUren = new PanelUren();
+            var panelVerlof = CreatePanel(Draw.Color.LightCoral, "Verlof");
+            var panelSubmit = CreatePanel(Draw.Color.Gray, "Submit");
             //panelSubmit.Height = 40;
 
             // Spacers (lege panelen met vaste hoogte)
@@ -99,7 +120,7 @@ namespace Urenlijsten_App
             this.Controls.Add(table);
         }
 
-        private Panel CreatePanel(Color color, string text)
+        private Panel CreatePanel(Draw.Color color, string text)
         {
             return new Panel
             {
@@ -118,10 +139,129 @@ namespace Urenlijsten_App
             };
         }
 
+        private void Assign(IXLCell cell, object gridValue)
+        {
+            if (gridValue != null)
+            {
+                if (gridValue is int intValue)
+                {
+                    cell.Value = intValue;
+                }
+                else if (gridValue is float floatValue)
+                {
+                    cell.Value = floatValue;
+                }
+                else if (gridValue is double doubleValue) // Overweeg ook double
+                {
+                    cell.Value = doubleValue;
+                }
+                else if (gridValue is string stringValue)
+                {
+                    cell.Value = stringValue;
+                }
+                else if (gridValue is DateTime dateTimeValue)
+                {
+                    cell.Value = dateTimeValue;
+                }
+                else
+                {
+                    // Als het een ander type is, kun je het eventueel als string opslaan
+                    cell.Value = gridValue.ToString();
+                }
+            }
+        }// Assign
+
+        // Zoek header in kopie van template die we aan het schrijven zijn.
+        public int FindColumn(IXLWorksheet worksheet, string headerText, int row)
+        {
+            for (int col =1; col < 20; ++col)
+            {
+               string cellText = worksheet.Cell(row, col).Value.ToString();
+               if (cellText.StartsWith(headerText, StringComparison.OrdinalIgnoreCase))
+                    return col;
+            }
+            return -1;
+        }
+
         private void BtnSubmit_Click(object sender, EventArgs e)
         {
-            string path = Path.Combine(Application.StartupPath, @"..\..\..\UrenlijstBLS.xlsx");
-            path = Path.GetFullPath(path);  // normalized path without \..\
+            // 1) Maak een kopie van het sjabloon
+            string templatePath = Path.Combine(Application.StartupPath, @"..\..\..\UrenlijstBLS.xlsx");
+            templatePath = Path.GetFullPath(templatePath);  // normalized path without \..\
+            string destionationPath = Path.GetDirectoryName(templatePath);
+            string destinationPath = Path.Combine(destionationPath, "result.xlsx");
+
+            try
+            {
+                File.Copy(templatePath, destinationPath, true); // true allows overwriting if the file exists
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij het kopiëren van het sjabloon: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // 2) Open de kopie met ClosedXML
+            try
+            {
+                using (var workbook = new XLWorkbook(destinationPath))
+                {
+                    var worksheet = workbook.Worksheets.First(); // Ga ervan uit dat de data in het eerste werkblad moet komen
+                    var dv = this.panelUren.dataGridView1;
+
+                    const int maxRows = 10;
+
+                    //kopieer km:
+                    int colKmDataGrid = dv.GetColumnIndexByHeader("km");
+                    int colKmExcel = FindColumn(worksheet, "km", 8);
+                    if (colKmDataGrid != -1 && colKmExcel != -1) 
+                    {
+                        for (int row=0;row< maxRows; ++row)
+                        {
+                            Assign(worksheet.Cell(row + 9, colKmExcel), dv.Rows[row].Cells[colKmDataGrid].Value);
+                        }
+                    }
+
+                    // kopieer ma-zo:
+                    int colMaDataGrid = dv.GetColumnIndexByHeader("Ma");
+                    int colMaExcel = FindColumn(worksheet, "Ma", 8);
+                    if (colMaDataGrid != -1 && colMaExcel != -1)
+                    {
+                        for (int day = 1; day <= 7; ++day)
+                        {
+                            // copy day column
+                            for (int row = 0; row < maxRows; ++row)
+                            {
+                                Assign(worksheet.Cell(row + 9, colMaExcel), dv.Rows[row].Cells[colMaDataGrid].Value);
+                            }
+
+                            // Next day = next column
+                            ++colMaDataGrid;
+                            ++colMaExcel;
+                        }
+                    }
+
+                    int col;
+                    col = FindColumn(worksheet, "Naam", 2); worksheet.Cell(2, col+1).Value = panelLogoNaam.txtName.Text;
+                    col = FindColumn(worksheet, "Week", 4); worksheet.Cell(4, col + 1).Value = panelLogoNaam.txtWeek.Text;
+                    col = FindColumn(worksheet, "van", 5); worksheet.Cell(5, col + 1).Value = $"{panelLogoNaam.ctrlWeek.Date} - {panelLogoNaam.lblTotDate.Text}";
+                    worksheet.Cell("D1").Value = panelLogoNaam.lblCompany.Text;
+                    //worksheet.Cell("N2").Value = panelLogoNaam.txtName.Text;
+                    //worksheet.Cell("N4").Value = panelLogoNaam.txtWeek.Text;
+                    //worksheet.Cell("N5").Value = $"{panelLogoNaam.ctrlWeek.Date} - {panelLogoNaam.lblTotDate.Text}";
+                    //worksheet.Cell("D1").Value = panelLogoNaam.lblCompany.Text;
+
+                    // Save de kopie.xlsx
+                    workbook.Save();
+                    MessageBox.Show($"Data succesvol geëxporteerd naar {destinationPath}", "Succes", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fout bij het schrijven naar Excel: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+
 
             /*
             try

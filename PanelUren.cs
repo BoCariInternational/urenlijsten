@@ -19,7 +19,7 @@ namespace CustomControls
 {
     public class PanelUren : Panel
     {
-        private DataGridView dataGridView1;
+        public DataGridView dataGridView1;
 
         // ProjectItem class met alle vereiste properties
         public class ProjectItem : IShortNameable
@@ -131,29 +131,33 @@ namespace CustomControls
 
         private void AddColumns()
         {
+            // Maak kolom 0 onzichtbaar:
+            dataGridView1.Columns[0].Visible = false;
+
             // Klantnaam
             dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Klantnaam", HeaderText = "Klantnaam" });
 
             // Projecttype (CheckedComboBox filter)
-            var typeColumn = new DataGridViewColumn
+            var columnProjectType = new DataGridViewColumn
             {
                 Name = "Projecttype",
                 HeaderText = "Projecttype",
                 CellTemplate = new DataGridViewCheckedComboBoxCell()
             };
-            dataGridView1.Columns.Add(typeColumn);
+            dataGridView1.Columns.Add(columnProjectType);
 
             // Projectnummer (FilteredComboBox)
-            var nummerColumn = new DataGridViewColumn
+            var columnProjectNumber = new DataGridViewColumn
             {
                 Name = "Projectnummer",
                 HeaderText = "Projectnummer",
                 CellTemplate = new DataGridViewFilteredComboBoxCell()
             };
-            dataGridView1.Columns.Add(nummerColumn);
+            dataGridView1.Columns.Add(columnProjectNumber);
 
             // km dienstreis
             dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "kmDienstreis", HeaderText = "km dienstreis" });
+            int count = dataGridView1.ColumnCount;
 
             // Dag columns
             string[] days = { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
@@ -164,6 +168,7 @@ namespace CustomControls
 
             // Totaal
             dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Totaal", HeaderText = "Totaal", ReadOnly = true });
+            count = dataGridView1.ColumnCount;
         }
 
         private void DataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)

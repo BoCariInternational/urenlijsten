@@ -258,13 +258,13 @@ namespace CustomControls
             // Row 3
             lblTot = new Label
             {
-                Text = "totLabel",
+                Text = "tot",
                 TextAlign = ContentAlignment.MiddleRight,
                 Dock = DockStyle.Fill
             };
             lblTotDate = new Label
             {
-                Text = "tot",
+                Text = "", // The date value
                 TextAlign = ContentAlignment.MiddleLeft,
                 Dock = DockStyle.Fill
             };
