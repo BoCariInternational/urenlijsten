@@ -40,7 +40,7 @@ namespace CustomControls
             public string ToStringShort() => $"{projectCode}";
         }
 
-        private class ProjectData  // root node for json met project codes
+        public class ProjectData  // root node for json met project codes
         {
             [JsonProperty("ProjectCodes")]
             public List<ProjectItem> allProjects { get; set; }
@@ -49,16 +49,18 @@ namespace CustomControls
             public List<string> projectTypes { get; set; }
         }
 
-        public class ProjectTypeWrapper : IShortNameable
+        public class ShortableProjectType : IShortNameable
         {
             public string TypeName { get; set; } // Een string member om de project type naam op te slaan
 
-            public string ToString() => TypeName;         // Lange naam voor checkboxes
-            public string ToStringShort() => TypeName;    // Korte naam voor textbox (kan eventueel aangepast worden)
+            public override string ToString() => TypeName;// Lange naam voor checkboxes
+            public string ToStringShort() =>  TypeName.Substring(0, 3); // Korte naam voor textbox (kan eventueel aangepast worden)
+                                                                        // Note: lengte strings moet minstens 3 zijn.
         }
 
-        private ProjectData projectDataJson;
-        List<ProjectTypeWrapper> wrappedProjectTypes;
+        //private
+        public ProjectData projectDataJson;
+        List<ShortableProjectType> shortableProjectTypes;
 
         // Example of how you might read from a file in a WinForms application
         public void ReadProjectDataFromFile(string filePath)
@@ -91,7 +93,7 @@ namespace CustomControls
                 Environment.Exit(1);
             }
 
-            wrappedProjectTypes = projectDataJson.projectTypes.ConvertAll(type => new ProjectTypeWrapper { TypeName = type });
+            shortableProjectTypes = projectDataJson.projectTypes.ConvertAll(type => new ShortableProjectType { TypeName = type });
         }
 
         public PanelUren()
@@ -200,14 +202,13 @@ namespace CustomControls
 
                         // Vervang komma door punt voor het parsen
                         valueToParse = valueToParse.Replace(',', '.');
-
                         if (double.TryParse(valueToParse, out double hours))
                         {
                             cell.Value = hours; // Sla de geparste double waarde op
                         }
                         else
                         {
-                            MessageBox.Show($"Ongeldige invoer: '{value}'. Voer een getal in (bv. 1,5 of 2).", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show($"Ongeldige invoer: '{value}'. Voer een getal in (bv. 1,5 of 2). \nRij: {e.RowIndex}, Kolom: {columnName}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
                 }
@@ -221,7 +222,7 @@ namespace CustomControls
 
             if (columnName == "Projecttype" && e.Control is CheckedComboBox comboProjectType)
             {
-                comboProjectType.SetDataSource(wrappedProjectTypes);
+                comboProjectType.SetDataSource(shortableProjectTypes);
             }
             else if (columnName == "Projectnummer" && e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
             {

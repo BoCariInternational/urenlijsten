@@ -15,15 +15,14 @@ namespace CustomControls
     public class CheckedComboBox : UserControl
     {
         // Child controls
-        private readonly TextBox _textBox = new() { ReadOnly = true };
-        private readonly Button _dropdownButton = new() { Text = "▼" };
-        private readonly CheckedListBox _checkedListBox = new();
-        private readonly Panel _dropdownPanel = new() { Visible = false, BorderStyle = BorderStyle.FixedSingle };
-        private readonly ToolTip _toolTip = new(); // Added ToolTip component
+        private TableLayoutPanel _layoutPanel;
+        private TextBox _textBox;
+        private Button _dropdownButton;
+        private CheckedListBox _checkedListBox;
+        private Panel _dropdownPanel;
+        private ToolTip _toolTip = new(); // Added ToolTip component
 
-        // Data
-        private Func<object, string> _shortNameSelector = x => x.ToString()!;
-
+        // Constructor
         public CheckedComboBox()
         {
             InitializeComponents();
@@ -34,27 +33,70 @@ namespace CustomControls
         public void SetDataSource<T>(List<T> items) where T : IShortNameable
         {
             _checkedListBox.DataSource = items;
-            _shortNameSelector = x => ((IShortNameable)x).ToStringShort();
             UpdateTextDisplay();
         }
 
         // Initialization
         private void InitializeComponents()
         {
-            // Layout setup (Dock, Size, etc.)
-            _textBox.Dock = DockStyle.Fill;
-            _dropdownButton.Dock = DockStyle.Right;
-            _dropdownPanel.Size = new Size(Width, 150);
+            // @formatter:off
+            _layoutPanel = new TableLayoutPanel()
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                ColumnStyles =
+                {
+                    new ColumnStyle(SizeType.AutoSize), // Button
+                    new ColumnStyle(SizeType.Percent, 100F) // TextBox
+                },
+                RowStyles =
+                {
+                    new RowStyle(SizeType.AutoSize) // Or SizeType.Absolute with desired height
+                },
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                BackColor = SystemColors.Window,
+                BorderStyle = BorderStyle.FixedSingle
+            };
 
-            // Hierarchy
-            Controls.Add(_textBox);
-            Controls.Add(_dropdownButton);
-            Controls.Add(_dropdownPanel);
+            _textBox = new TextBox()
+            {
+                Dock = DockStyle.Fill // Or set Anchor to Left, Right
+            };
+            _layoutPanel.Controls.Add(_textBox, 0, 0);
+
+            _dropdownButton = new Button
+            {
+                Text = "▼",
+                Dock = DockStyle.Right,
+                FlatStyle = FlatStyle.Flat,
+            };
+            _layoutPanel.Controls.Add(_dropdownButton, 1, 0);
+            this.Controls.Add(_layoutPanel);
+
+            _dropdownPanel = new Panel
+            {
+                Dock = DockStyle.None,
+                Visible = false,
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.Magenta
+
+            };
+            _checkedListBox = new CheckedListBox
+            {
+                Dock = DockStyle.Fill,
+                CheckOnClick = true,
+                BorderStyle = BorderStyle.None,
+                IntegralHeight = false,
+                HorizontalScrollbar = true,
+            };
             _dropdownPanel.Controls.Add(_checkedListBox);
 
             // ToolTip setup
             _toolTip.AutoPopDelay = 5000;
             _toolTip.InitialDelay = 500;
+            // @formatter: on
         }
 
         public void ClearSelections()
@@ -105,7 +147,6 @@ namespace CustomControls
                 .ToList();
         }
 
-
         // ---- Focus & Dropdown Management ----
         private void WireEvents()
         {
@@ -122,7 +163,7 @@ namespace CustomControls
             _checkedListBox.ItemCheck += (s, e) => UpdateTextDisplay();
         }
 
-        private void OnGotFocus(EventArgs e)
+        protected override void OnGotFocus(EventArgs e)
         {
             _textBox.BackColor = SystemColors.Highlight;
             base.OnGotFocus(e);
@@ -157,14 +198,52 @@ namespace CustomControls
 
         private void PositionDropdown()
         {
-            var screenPos = PointToScreen(new Point(0, Height));
-            int spaceBelow = Screen.GetWorkingArea(screenPos).Bottom - screenPos.Y;
+            // Ensure the dropdown panel is added to the ParentForm's controls
+            if (ParentForm != null && !ParentForm.Controls.Contains(_dropdownPanel))
+            {
+               ParentForm.Controls.Add(_dropdownPanel);
+            }
+
+            // Determine the position of the top-left corner of your custom control on the screen
+            var controlScreenPos = PointToScreen(Point.Empty);
+
+            // Calculate the position of the bottom-left corner of your custom control on the screen
+            var controlScreenPosBottom = PointToScreen(new Point(0, Height));
+
+            // Convert screen coordinates back to form coordinates
+            var controlFormPos = ParentForm.PointToClient(controlScreenPos);
+            var controlFormPosBottom = ParentForm.PointToClient(controlScreenPosBottom);
+
+            // Determine the available space below the control
+            int spaceBelow = Screen.GetWorkingArea(controlScreenPosBottom).Bottom - controlScreenPosBottom.Y;
 
             _dropdownPanel.Width = Width;
-            _dropdownPanel.Height = Math.Min(150, spaceBelow - 5); // Now using spaceBelow
-            _dropdownPanel.Location = spaceBelow > _dropdownPanel.Height
-                ? new Point(0, Height)  // Open downward
-                : new Point(0, -_dropdownPanel.Height); // Open upward
+
+            // Calculate the desired height based on the number of items
+            int itemCount = _checkedListBox.Items.Count;
+            int itemHeight = _checkedListBox.ItemHeight > 0 ? _checkedListBox.ItemHeight : 16; // Use the ItemHeight of the CheckedListBox or a default value
+            int preferredHeight = itemCount * itemHeight + 2; // +2 for the borders
+
+            // Set a maximum height (e.g., 200 pixels) to prevent the dropdown from becoming too large
+            const int maxHeight = 200;
+            _dropdownPanel.Height = Math.Max(preferredHeight, 20);
+            _dropdownPanel.Height = Math.Min(preferredHeight, maxHeight);
+
+            if (spaceBelow > _dropdownPanel.Height)
+            {
+            // Open downward: place the top-left corner of the dropdown panel
+            // directly below the bottom-left corner of the custom control
+            _dropdownPanel.Location = controlFormPosBottom;
+            }
+            else
+            {
+            // Open upward: place the bottom-left corner of the dropdown panel
+            // directly above the top-left corner of the custom control
+            _dropdownPanel.Location = new Point(controlFormPos.X, controlFormPos.Y - _dropdownPanel.Height);
+            }
+
+            // Zet location op 0,0 voor debugging
+            //_dropdownPanel.Location = Point.Empty;
         }
 
         // ---- Text Display ----
@@ -174,7 +253,7 @@ namespace CustomControls
 
             string fullText = string.Join(", ", selected);
             _textBox.Text = TextHelpers.TruncateWithEllipsis(fullText, _textBox.Font, _textBox.Width - 10);
-            
+
             // Set ToolTip text (shows full text on hover)
             _toolTip.SetToolTip(_textBox, fullText);
         }

@@ -33,6 +33,7 @@ namespace Urenlijsten_App
         public static Image imageCalendar, imageAdd, imageDelete, imageEdit, imageUndo, imageOk;
         public PanelLogo panelLogoNaam;
         public PanelUren panelUren;
+        public Panel panelVerlof;
 
         private Image LoadIcon(string fileName)
         {
@@ -90,7 +91,42 @@ namespace Urenlijsten_App
             // Panels maken
             panelLogoNaam = new PanelLogo();
             panelUren = new PanelUren();
-            var panelVerlof = CreatePanel(Draw.Color.LightCoral, "Verlof");
+            panelVerlof = CreatePanel(Draw.Color.LightCoral, "Verlof");
+
+            //RR!! test code
+            Panel p = new()
+            {
+                Width = 600,
+                Dock = DockStyle.Left,
+                BackColor = Draw.Color.AliceBlue
+            };
+            Button b1 = new Button()
+            {
+                //Anchor = AnchorStyles.Left | AnchorStyles.Top,
+                Dock = DockStyle.Left,
+                Text = "b1"
+            };
+            p.Controls.Add(b1);
+
+            CheckedComboBox cb = new()
+            {
+                Dock = DockStyle.Left,
+                Width = 500
+            };
+            var shortableProjectTypes = panelUren.projectDataJson.projectTypes.ConvertAll(type => new PanelUren.ShortableProjectType { TypeName = type });
+            cb.SetDataSource(shortableProjectTypes);
+            p.Controls.Add(cb);
+
+            Button b2 = new Button()
+            {
+                Dock = DockStyle.Left,
+                Text = "b2"
+            };
+            p.Controls.Add(b2);
+            panelVerlof.Controls.Add(p);
+
+            // RR! end test code
+
             var panelSubmit = CreatePanel(Draw.Color.Gray, "Submit");
             //panelSubmit.Height = 40;
 
@@ -174,10 +210,10 @@ namespace Urenlijsten_App
         // Zoek header in kopie van template die we aan het schrijven zijn.
         public int FindColumn(IXLWorksheet worksheet, string headerText, int row)
         {
-            for (int col =1; col < 20; ++col)
+            for (int col = 1; col < 20; ++col)
             {
-               string cellText = worksheet.Cell(row, col).Value.ToString();
-               if (cellText.StartsWith(headerText, StringComparison.OrdinalIgnoreCase))
+                string cellText = worksheet.Cell(row, col).Value.ToString();
+                if (cellText.StartsWith(headerText, StringComparison.OrdinalIgnoreCase))
                     return col;
             }
             return -1;
@@ -214,9 +250,9 @@ namespace Urenlijsten_App
                     //kopieer km:
                     int colKmDataGrid = dv.GetColumnIndexByHeader("km");
                     int colKmExcel = FindColumn(worksheet, "km", 8);
-                    if (colKmDataGrid != -1 && colKmExcel != -1) 
+                    if (colKmDataGrid != -1 && colKmExcel != -1)
                     {
-                        for (int row=0;row< maxRows; ++row)
+                        for (int row = 0; row < maxRows; ++row)
                         {
                             Assign(worksheet.Cell(row + 9, colKmExcel), dv.Rows[row].Cells[colKmDataGrid].Value);
                         }
@@ -242,7 +278,7 @@ namespace Urenlijsten_App
                     }
 
                     int col;
-                    col = FindColumn(worksheet, "Naam", 2); worksheet.Cell(2, col+1).Value = panelLogoNaam.txtName.Text;
+                    col = FindColumn(worksheet, "Naam", 2); worksheet.Cell(2, col + 1).Value = panelLogoNaam.txtName.Text;
                     col = FindColumn(worksheet, "Week", 4); worksheet.Cell(4, col + 1).Value = panelLogoNaam.txtWeek.Text;
                     col = FindColumn(worksheet, "van", 5); worksheet.Cell(5, col + 1).Value = $"{panelLogoNaam.ctrlWeek.Date} - {panelLogoNaam.lblTotDate.Text}";
                     worksheet.Cell("D1").Value = panelLogoNaam.lblCompany.Text;
