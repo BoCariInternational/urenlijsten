@@ -2,7 +2,10 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Compile Update="CheckedComboBox.cs">
-      <SubType>Component</SubType>
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="CheckedComboBox.DataGridView.cs">
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="CustomDateControl.cs">
       <SubType>Form</SubType>

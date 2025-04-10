@@ -140,11 +140,18 @@ namespace CustomControls
             dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Klantnaam", HeaderText = "Klantnaam" });
 
             // Projecttype (CheckedComboBox filter)
+            /*
             var columnProjectType = new DataGridViewColumn
             {
                 Name = "Projecttype",
                 HeaderText = "Projecttype",
                 CellTemplate = new DataGridViewCheckedComboBoxCell()
+            };
+            */
+            var columnProjectType = new DataGridViewCheckedComboBoxColumn
+            {
+                Name = "Projecttype",
+                HeaderText = "Projecttype"
             };
             dataGridView1.Columns.Add(columnProjectType);
 
@@ -406,6 +413,14 @@ namespace CustomControls
         }
     }
 
+    public class DataGridViewCheckedComboBoxColumn : DataGridViewColumn
+    {
+        public DataGridViewCheckedComboBoxColumn()
+            : base(new DataGridViewCheckedComboBoxCell())
+        {
+        }
+    }
+
     // CheckedComboBox cel implementatie
     public class DataGridViewCheckedComboBoxCell : DataGridViewTextBoxCell
     {
@@ -427,7 +442,7 @@ namespace CustomControls
         public override Type ValueType => typeof(string);
         public override object DefaultNewRowValue => string.Empty;
     }
-
+   
     // FilteredComboBox cel implementatie
     public class DataGridViewFilteredComboBoxCell : DataGridViewTextBoxCell
     {

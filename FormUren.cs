@@ -125,6 +125,13 @@ namespace Urenlijsten_App
             p.Controls.Add(b2);
             panelVerlof.Controls.Add(p);
 
+            var ncb = new ComboBox()
+            {
+                Dock = DockStyle.Left,
+                Text = "Blah"
+            };
+            panelVerlof.Controls.Add(ncb);
+
             // RR! end test code
 
             var panelSubmit = CreatePanel(Draw.Color.Gray, "Submit");

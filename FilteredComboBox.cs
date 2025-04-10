@@ -9,11 +9,11 @@ namespace CustomControls
 {
     public class FilteredComboBox<T> : ComboBox
     {
-    private const int FILTER_DELAY_MS = 500; // Configurable delay
+        private const int FILTER_DELAY_MS = 500; // Configurable delay
         private List<T> _sourceList;
         private System.Timers.Timer _filterTimer;
         private string _lastFilterText = string.Empty;
-    private bool _isFilteringInProgress = false;
+        private bool _isFilteringInProgress = false;
 
         public FilteredComboBox()
         {
@@ -21,7 +21,7 @@ namespace CustomControls
             this.AutoCompleteMode = AutoCompleteMode.None; // We handle this ourselves
 
             // Set up the filter delay timer
-        _filterTimer = new System.Timers.Timer(FILTER_DELAY_MS);
+            _filterTimer = new System.Timers.Timer(FILTER_DELAY_MS);
             _filterTimer.AutoReset = false;
             _filterTimer.Elapsed += OnFilterTimerElapsed;
 
@@ -78,25 +78,25 @@ namespace CustomControls
             }
         }
 
-    private void OnKeyDown(object sender, KeyEventArgs e)
-    {
-        switch (e.KeyCode)
+        private void OnKeyDown(object sender, KeyEventArgs e)
         {
-            case Keys.Up:
-            case Keys.Down:
-                if (!this.DroppedDown) this.DroppedDown = true;
-                break;
-                
-            case Keys.Tab:
-            case Keys.Enter:
-                if (this.Items.Count > 0 && !string.IsNullOrEmpty(this.Text))
-                {
-                    this.SelectedIndex = 0; // Auto-select top item
-                    e.Handled = true; // Prevent further processing
-                }
-                break;
+            switch (e.KeyCode)
+            {
+                case Keys.Up:
+                case Keys.Down:
+                    if (!this.DroppedDown) this.DroppedDown = true;
+                    break;
+
+                case Keys.Tab:
+                case Keys.Enter:
+                    if (this.Items.Count > 0 && !string.IsNullOrEmpty(this.Text))
+                    {
+                        this.SelectedIndex = 0; // Auto-select top item
+                        e.Handled = true; // Prevent further processing
+                    }
+                    break;
+            }
         }
-    }
 
         private void OnLostFocus(object sender, EventArgs e)
         {
@@ -105,61 +105,61 @@ namespace CustomControls
 
         private void ApplyFilter(string filterText)
         {
-        if (_sourceList == null || _isFilteringInProgress) return;
+            if (_sourceList == null || _isFilteringInProgress) return;
 
             // Don't re-filter if the text hasn't changed
             if (filterText == _lastFilterText) return;
-        
-        _isFilteringInProgress = true;
-        try
-        {
-            _lastFilterText = filterText;
-            
-            // Build regex pattern with .+ between terms (requires consecutive chars)
-            string regexPattern = string.IsNullOrEmpty(filterText) 
-                ? ".*" 
-                : ".*" + string.Join(".+", filterText.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries)) + ".*";
-            
-            var regex = new Regex(regexPattern, RegexOptions.IgnoreCase);
-            
-            var filteredItems = _sourceList
-                .Where(item => regex.IsMatch(item.ToString()))
-                .ToList();
 
-            this.BeginUpdate();
+            _isFilteringInProgress = true;
             try
             {
-                this.DataSource = null;
-                this.Items.Clear();
-                
-                if (filteredItems.Count > 0)
+                _lastFilterText = filterText;
+
+                // Build regex pattern with .+ between terms (requires consecutive chars)
+                string regexPattern = string.IsNullOrEmpty(filterText)
+                    ? ".*"
+                    : ".*" + string.Join(".+", filterText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)) + ".*";
+
+                var regex = new Regex(regexPattern, RegexOptions.IgnoreCase);
+
+                var filteredItems = _sourceList
+                    .Where(item => regex.IsMatch(item.ToString()))
+                    .ToList();
+
+                this.BeginUpdate();
+                try
                 {
-                    this.DataSource = filteredItems;
-                    this.DisplayMember = "";
-                    
-                    if (filteredItems.Count == 1)
+                    this.DataSource = null;
+                    this.Items.Clear();
+
+                    if (filteredItems.Count > 0)
                     {
-                        this.SelectedIndex = 0;
+                        this.DataSource = filteredItems;
+                        this.DisplayMember = "";
+
+                        if (filteredItems.Count == 1)
+                        {
+                            this.SelectedIndex = 0;
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(filterText)
+                        && filteredItems.Count > 1
+                        && this.Focused)
+                    {
+                        this.DroppedDown = true;
                     }
                 }
-                
-                if (!string.IsNullOrEmpty(filterText) 
-                    && filteredItems.Count > 1 
-                    && this.Focused)
+                finally
                 {
-                    this.DroppedDown = true;
+                    this.EndUpdate();
                 }
             }
             finally
             {
-                this.EndUpdate();
+                _isFilteringInProgress = false;
             }
         }
-        finally
-        {
-            _isFilteringInProgress = false;
-        }
-    }
 
         protected override void Dispose(bool disposing)
         {
