@@ -6,8 +6,10 @@ using System.Globalization;
 using DocumentFormat.OpenXml.VariantTypes;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.ComponentModel.DataAnnotations;
+using ClosedXML.Excel;
 
-namespace CustomControls
+
+namespace Urenlijsten_App
 {
     public class PanelLogo : Panel
     {
@@ -383,6 +385,15 @@ namespace CustomControls
                 Dock = DockStyle.Fill,
                 BackColor = Color.Bisque
             });
+        }
+
+        public void CopyOnSubmit(IXLWorksheet worksheet)
+        {
+            int col;
+            col = FormUren.FindColumn(worksheet, "Naam", 2); worksheet.Cell(2, col + 1).Value = txtName.Text;
+            col = FormUren.FindColumn(worksheet, "Week", 4); worksheet.Cell(4, col + 1).Value = txtWeek.Text;
+            col = FormUren.FindColumn(worksheet, "van", 5); worksheet.Cell(5, col + 1).Value = $"{ctrlWeek.Date} - {lblTotDate.Text}";
+            worksheet.Cell("D1").Value = lblCompany.Text;
         }
     }// class PanelLogo
 }

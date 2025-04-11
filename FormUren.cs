@@ -35,6 +35,7 @@ namespace Urenlijsten_App
         public PanelLogo panelLogoNaam;
         public PanelUren panelUren;
         public Panel panelVerlof;
+        public static FormUren Current { get; private set; }
 
         private Image LoadIcon(string fileName)
         {
@@ -53,6 +54,7 @@ namespace Urenlijsten_App
 
         public FormUren()
         {
+            Current = this;
             Initialize(); // Jouw eigen methode
         }
 
@@ -183,7 +185,7 @@ namespace Urenlijsten_App
             };
         }
 
-        private void Assign(IXLCell cell, object gridValue)
+        public static void Assign(IXLCell cell, object gridValue)
         {
             if (gridValue != null)
             {
@@ -217,29 +219,12 @@ namespace Urenlijsten_App
 
         const int rowHeaderInTemplate = 8;
         const int maxRows = 10;
-        // ComputeTotal1 (horizontally) for column with headerText
-        public void ComputeTotal1(string headerText, IXLWorksheet worksheet, DataGridView dv)
-        {
-            int colDataGrid = dv.GetColumnIndexByHeader(headerText);
-            if (colDataGrid != -1)
-            {
-                double sum = 0;
-                for (int row = 0; row < maxRows; ++row)
-                {
-                    var value = dv.Rows[row].Cells[colDataGrid].Value.ToString();
-                    if (double.TryParse(value, out double number))
-                    {
-                        sum += number;
-                    }
-                }
-                dv.Rows[maxRows].Cells[colDataGrid].Value = sum; // row met totalen (horizontaal) 
-            }
-        }
+       
 
         // ComputeTotal2
 
         // Zoek header in kopie van template die we aan het schrijven zijn.
-        public int FindColumn(IXLWorksheet worksheet, string headerText, int rowInTemplate)
+        public static int FindColumn(IXLWorksheet worksheet, string headerText, int rowInTemplate)
         {
             for (int col = 1; col < 30; ++col)
             {
@@ -248,21 +233,6 @@ namespace Urenlijsten_App
                     return col;
             }
             return -1;
-        }
-
-        private void CopyColumnProjectUren(string headerText, IXLWorksheet worksheet, DataGridView dv)
-        {
-            // Header met Klantnaam, projectcode, ma-zo, etc.
-            // kopieer kolom met headerText:
-            int colDataGrid = dv.GetColumnIndexByHeader(headerText);
-            int colExcel = FindColumn(worksheet, headerText, rowHeaderInTemplate);
-            if (colDataGrid != -1 && colExcel != -1)
-            {
-                for (int row = 0; row < maxRows; ++row)
-                {
-                    Assign(worksheet.Cell(row + rowHeaderInTemplate + 1, colExcel), dv.Rows[row].Cells[colDataGrid].Value);
-                }
-            }
         }
 
         private void BtnSubmit_Click(object sender, EventArgs e)
@@ -289,28 +259,9 @@ namespace Urenlijsten_App
                 using (var workbook = new XLWorkbook(destinationPath))
                 {
                     var worksheet = workbook.Worksheets.First(); // Ga ervan uit dat de data in het eerste werkblad moet komen
-                    var dv = this.panelUren.dataGridView1;
-
-                    //const int maxRows = 10;
-
-                    CopyColumnProjectUren("Klantnaam", worksheet, dv);
-                    CopyColumnProjectUren("km", worksheet, dv);
-                    var dagen = new[] { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
-                    foreach (var dag in dagen)
-                    {
-                        CopyColumnProjectUren(dag, worksheet, dv);
-                    }
-
-
-                    int col;
-                    col = FindColumn(worksheet, "Naam", 2); worksheet.Cell(2, col + 1).Value = panelLogoNaam.txtName.Text;
-                    col = FindColumn(worksheet, "Week", 4); worksheet.Cell(4, col + 1).Value = panelLogoNaam.txtWeek.Text;
-                    col = FindColumn(worksheet, "van", 5); worksheet.Cell(5, col + 1).Value = $"{panelLogoNaam.ctrlWeek.Date} - {panelLogoNaam.lblTotDate.Text}";
-                    worksheet.Cell("D1").Value = panelLogoNaam.lblCompany.Text;
-                    //worksheet.Cell("N2").Value = panelLogoNaam.txtName.Text;
-                    //worksheet.Cell("N4").Value = panelLogoNaam.txtWeek.Text;
-                    //worksheet.Cell("N5").Value = $"{panelLogoNaam.ctrlWeek.Date} - {panelLogoNaam.lblTotDate.Text}";
-                    //worksheet.Cell("D1").Value = panelLogoNaam.lblCompany.Text;
+                     
+                    panelLogoNaam.CopyOnSubmit(worksheet);
+                    panelUren.CopyOnSubmit(worksheet);
 
                     // Save de kopie.xlsx
                     workbook.Save();
@@ -323,24 +274,6 @@ namespace Urenlijsten_App
             }
 
 
-
-            /*
-            try
-            {
-                ExcelAPI excel = new ExcelAPI(path);
-
-                excel.ModifyExcel();
-                excel.Save();
-
-                MessageBox.Show("Formulier verzonden!", "Bevestiging", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Er is een fout opgetreden tijdens het maken van een excel sheet: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            */
         }// BtnSubmit_Click
     }//class FormUren
 }

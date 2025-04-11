@@ -6,7 +6,9 @@ using System.Text.RegularExpressions;
 using CustomControls;
 using System.ComponentModel;
 using Newtonsoft.Json;
-
+using ClosedXML.Excel;
+using Urenlijsten_App;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 // Vereiste interfaces
 public interface IShortNameable
@@ -17,9 +19,21 @@ public interface IShortNameable
 
 namespace CustomControls
 {
+    
     public class PanelUren : Panel
     {
         public DataGridView dataGridView1;
+        // In dataGridView1:
+        private int colMa;
+        private int colTotal;
+        private int colKm;
+        private const int rowTotal1 = 10;
+        private const int rowSpacer = rowTotal1 + 1;
+        private const int rowTotal2 = 20;
+
+        // In (copy of) template (excel)
+        private const int rowHeaderInTemplate = 8;
+
 
         // ProjectItem class met alle vereiste properties
         public class ProjectItem : IShortNameable
@@ -165,10 +179,11 @@ namespace CustomControls
             dataGridView1.Columns.Add(columnProjectNumber);
 
             // km dienstreis
+            colKm = dataGridView1.ColumnCount;
             dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "kmDienstreis", HeaderText = "km dienstreis" });
-            int count = dataGridView1.ColumnCount;
 
             // Dag columns
+            colMa = dataGridView1.ColumnCount;
             string[] days = { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
             foreach (var day in days)
             {
@@ -176,9 +191,123 @@ namespace CustomControls
             }
 
             // Totaal
+            colTotal = dataGridView1.ColumnCount;
             dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Totaal", HeaderText = "Totaal", ReadOnly = true });
-            count = dataGridView1.ColumnCount;
         }
+
+        // copy/submit methods
+        private void CopyColumnProjectUren(string headerText, IXLWorksheet worksheet, DataGridView dv)
+        {
+            // Header met Klantnaam, projectcode, ma-zo, etc.
+            // kopieer kolom met headerText:
+            int colDataGrid = dv.GetColumnIndexByHeader(headerText);
+            int colExcel = FormUren.FindColumn(worksheet, headerText, rowHeaderInTemplate);
+            if (colDataGrid != -1 && colExcel != -1)
+            {
+                for (int row = 0; row < rowTotal1; ++row)
+                {
+                    FormUren.Assign(worksheet.Cell(row + rowHeaderInTemplate + 1, colExcel), dv.Rows[row].Cells[colDataGrid].Value);
+                }
+            }
+        }
+
+        public void CopyOnSubmit(IXLWorksheet worksheet)
+        {
+            var dv = dataGridView1;
+
+            //const int rowTotal1 = 10;
+
+            CopyColumnProjectUren("Klantnaam", worksheet, dv);
+            CopyColumnProjectUren("km", worksheet, dv);
+            var dagen = new[] { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
+            foreach (var dag in dagen)
+            {
+                CopyColumnProjectUren(dag, worksheet, dv);
+            }
+
+        }
+
+        
+        // ComputeTotal1 (part of horizontal row of totals) for column with headerText
+        public void ComputeTotal1(string headerText, IXLWorksheet worksheet)
+        {
+            int colDataGrid = dataGridView1.GetColumnIndexByHeader(headerText);
+            if (colDataGrid != -1)
+            {
+                double sum = 0;
+                for (int row = 0; row < rowTotal1; ++row)
+                {
+                    var value = dataGridView1.Rows[row].Cells[colDataGrid].Value.ToString();
+                    if (double.TryParse(value, out double number))
+                    {
+                        sum += number;
+                    }
+                }
+                //dv.Rows[rowTotal1].Cells[colDataGrid].Value = sum; // row met totalen (horizontaal) 
+            }
+        }
+
+        private void ComputeTotalColumn(int col)
+        {
+            if (col < colKm)
+                return;
+
+            double sum = 0.0;
+            for (int row = 0; row < rowTotal1; ++row)
+            {
+                var value = dataGridView1.Rows[row].Cells[col].Value?.ToString();
+                if (double.TryParse(value, out double number))
+                {
+                    sum += number;
+                }
+            }
+
+            if (sum < 0.499)
+                dataGridView1.Rows[rowTotal1].Cells[col].Value = "";
+            else
+                dataGridView1.Rows[rowTotal1].Cells[col].Value = sum;
+
+            //=======================================================
+
+            if (col <= colKm)
+                return;
+            sum = 0.0;
+            for (int row = rowTotal1; row < rowTotal2; ++row)
+            {
+                var value = dataGridView1.Rows[row].Cells[col].Value?.ToString();
+                if (double.TryParse(value, out double number))
+                {
+                    sum += number;
+                }
+            }
+
+            if (sum < 0.499)
+                dataGridView1.Rows[rowTotal2].Cells[col].Value = "";
+            else
+                dataGridView1.Rows[rowTotal2].Cells[col].Value = sum;
+        }
+
+        private void ComputeTotalRow(int row)
+        {
+            if (row == rowTotal1 || row == rowSpacer || row == rowTotal2)
+                return;
+
+            double sum = 0.0;
+            for (int col = colMa; col < colTotal; ++col)
+            {
+                var value = dataGridView1.Rows[row].Cells[col].Value?.ToString();
+                if (double.TryParse(value, out double number))
+                {
+                    sum += number;
+                }
+            }
+
+            if (sum < 0.499)
+                dataGridView1.Rows[row].Cells[colTotal].Value = "";
+            else
+                dataGridView1.Rows[row].Cells[colTotal].Value = sum;
+        }
+
 
         private void KmTextBox_KeyPress(object sender, KeyPressEventArgs ev)
         {
@@ -361,7 +490,6 @@ namespace CustomControls
                     }
 
                     break;
-
                 case "Ma":
                 case "Di":
                 case "Wo":
@@ -377,7 +505,9 @@ namespace CustomControls
                         if (double.TryParse(valueToParse, out double hours))
                         {
                             cell.Value = hours;
-                            ParentForm? ComputeTotal1(cell); // Roep de berekening van het totaal aan
+                            ComputeTotalRow(e.RowIndex);
+                            ComputeTotalColumn(e.ColumnIndex);
+                            ComputeTotalColumn(colTotal);
                         }
                         else
                         {
@@ -386,10 +516,9 @@ namespace CustomControls
                         }
                     }
                     break;
-
-                    // Optioneel: validatie voor andere kolommen
-                    // case "kmDienstreis":
-                    //    break;
+                case "km Dienstreis":
+                    ComputeTotalColumn(e.ColumnIndex);
+                    break;
             }
         }
 

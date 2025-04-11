@@ -277,7 +277,7 @@ namespace CustomControls
 
         private void PositionDropdown()
         {
-            // Ensure the dropdown panel is added to the ParentForm's controls
+            // Ensure the dropdown panel is added to the FormUren.Current's controls
             if (ParentForm != null && !ParentForm.Controls.Contains(_panelDropDown))
             {
                 ParentForm.Controls.Add(_panelDropDown);
