@@ -16,16 +16,19 @@ namespace Urenlijsten_App
     {
         public static int GetColumnIndexByHeader(this DataGridView dataGridView, string headerText)
         {
-            for (int i = 0; i < dataGridView.Columns.Count; i++)
+            foreach (DataGridViewColumn col in dataGridView.Columns)
             {
-                if (dataGridView.Columns[i].HeaderText != null && dataGridView.Columns[i].HeaderText.StartsWith(headerText, StringComparison.OrdinalIgnoreCase))
+                if (col.HeaderText != null &&
+                    col.HeaderText.StartsWith(headerText, StringComparison.OrdinalIgnoreCase))
                 {
-                    return i; // Het kolomnummer (de index) is gevonden
+                    return col.Index;
                 }
             }
+
             return -1; // De kolom met de opgegeven header is niet gevonden
         }
     }
+
     public class FormUren : Form
     {
         public static Image imageCalendar, imageAdd, imageDelete, imageEdit, imageUndo, imageOk;
@@ -212,12 +215,35 @@ namespace Urenlijsten_App
             }
         }// Assign
 
-        // Zoek header in kopie van template die we aan het schrijven zijn.
-        public int FindColumn(IXLWorksheet worksheet, string headerText, int row)
+        const int rowHeaderInTemplate = 8;
+        const int maxRows = 10;
+        // ComputeTotal1 (horizontally) for column with headerText
+        public void ComputeTotal1(string headerText, IXLWorksheet worksheet, DataGridView dv)
         {
-            for (int col = 1; col < 20; ++col)
+            int colDataGrid = dv.GetColumnIndexByHeader(headerText);
+            if (colDataGrid != -1)
             {
-                string cellText = worksheet.Cell(row, col).Value.ToString();
+                double sum = 0;
+                for (int row = 0; row < maxRows; ++row)
+                {
+                    var value = dv.Rows[row].Cells[colDataGrid].Value.ToString();
+                    if (double.TryParse(value, out double number))
+                    {
+                        sum += number;
+                    }
+                }
+                dv.Rows[maxRows].Cells[colDataGrid].Value = sum; // row met totalen (horizontaal) 
+            }
+        }
+
+        // ComputeTotal2
+
+        // Zoek header in kopie van template die we aan het schrijven zijn.
+        public int FindColumn(IXLWorksheet worksheet, string headerText, int rowInTemplate)
+        {
+            for (int col = 1; col < 30; ++col)
+            {
+                string cellText = worksheet.Cell(rowInTemplate, col).Value.ToString();
                 if (cellText.StartsWith(headerText, StringComparison.OrdinalIgnoreCase))
                     return col;
             }
@@ -226,16 +252,15 @@ namespace Urenlijsten_App
 
         private void CopyColumnProjectUren(string headerText, IXLWorksheet worksheet, DataGridView dv)
         {
-            const int maxRows = 10;
-            const int startHeaderTemplate = 8;
-            //kopieer kolom met headerText:
+            // Header met Klantnaam, projectcode, ma-zo, etc.
+            // kopieer kolom met headerText:
             int colDataGrid = dv.GetColumnIndexByHeader(headerText);
-            int colExcel = FindColumn(worksheet, headerText, startHeaderTemplate);
+            int colExcel = FindColumn(worksheet, headerText, rowHeaderInTemplate);
             if (colDataGrid != -1 && colExcel != -1)
             {
                 for (int row = 0; row < maxRows; ++row)
                 {
-                    Assign(worksheet.Cell(row + startHeaderTemplate + 1, colExcel), dv.Rows[row].Cells[colDataGrid].Value);
+                    Assign(worksheet.Cell(row + rowHeaderInTemplate + 1, colExcel), dv.Rows[row].Cells[colDataGrid].Value);
                 }
             }
         }

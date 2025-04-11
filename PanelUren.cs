@@ -118,7 +118,7 @@ namespace CustomControls
             {
                 Dock = DockStyle.Fill,
                 AllowUserToAddRows = false,
-                RowCount = 20,
+                RowCount = 21,
                 ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
             };
 
@@ -180,63 +180,50 @@ namespace CustomControls
             count = dataGridView1.ColumnCount;
         }
 
-        private void DataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        private void KmTextBox_KeyPress(object sender, KeyPressEventArgs ev)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-
-            string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
-            DataGridViewCell cell = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-            string value = cell.Value?.ToString();
-
-            switch (columnName)
+            if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar))
             {
-                case "Projecttype":
-                    // Reset Projectnummer bij wijziging Projecttype
-                    dataGridView1.Rows[e.RowIndex].Cells["Projectnummer"].Value = null;
-
-                    // Sla gecombineerde waarde op (afkortingen;volledige waarden)
-                    if (dataGridView1.EditingControl is CheckedComboBox combo)
-                    {
-                        string displayValues = string.Join(",", combo.GetCheckedValuesShort());
-                        string realValues = string.Join(",", combo.GetCheckedValues());
-                        cell.Value = $"{displayValues};{realValues}";
-                    }
-                    break;
-
-                case "Ma":
-                case "Di":
-                case "Wo":
-                case "Do":
-                case "Vr":
-                case "Za":
-                case "Zo":
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        string valueToParse = value.EndsWith(",") ? value + "5" : value;
-                        valueToParse = valueToParse.Replace(',', '.');
-
-                        if (double.TryParse(valueToParse, out double hours))
-                        {
-                            cell.Value = hours;
-                        }
-                        else
-                        {
-                            ShowValidationError($"Ongeldige invoer: '{value}'. Voer een getal in (bv. 1,5 of 2).", e.RowIndex, columnName);
-                            cell.Value = value; // Behoud originele waarde voor correctie
-                        }
-                    }
-                    break;
-
-                // Optioneel: validatie voor andere kolommen
-                case "kmDienstreis":
-                    if (!string.IsNullOrEmpty(value) && !int.TryParse(value, out _))
-                    {
-                        ShowValidationError("Voer alleen hele getallen in voor kilometers.", e.RowIndex, columnName);
-                    }
-                    break;
+                ev.Handled = true;
             }
         }
 
+        private void TextBox_KeyPress_DayColumns(object sender, KeyPressEventArgs e)
+        {
+            TextBox textBox = (TextBox)sender;
+
+            if (char.IsDigit(e.KeyChar) || char.IsControl(e.KeyChar))
+            {
+                return;
+            }
+
+            if (e.KeyChar == '.' || e.KeyChar == ',')
+            {
+                if (textBox.Text.EndsWith(','))
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                if (textBox.SelectionStart == textBox.Text.Length || textBox.Text.Length == 0)
+                {
+                    if (e.KeyChar == '.')
+                    {
+                        e.KeyChar = ',';
+                    }
+                    return;
+                }
+                else
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            e.Handled = true;
+        }
+
+        #region DataGridView1 events
         private void ShowValidationError(string message, int rowIndex, string columnName)
         {
             MessageBox.Show(
@@ -247,6 +234,24 @@ namespace CustomControls
             );
             dataGridView1.Rows[rowIndex].Cells[columnName].Value = null; // Reset de waarde
             dataGridView1.CurrentCell = dataGridView1.Rows[rowIndex].Cells[columnName]; // Zet de focus terug op de cel
+        }
+
+        private void DataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.ColumnIndex >= 0)
+            {
+                string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
+
+                if (columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||
+                    columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo")
+                {
+                    if (e.Value != null && e.Value is string value && value.EndsWith(","))
+                    {
+                        e.Value = value + "5";
+                        e.FormattingApplied = true;
+                    }
+                }
+            }
         }
 
         private void DataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
@@ -330,64 +335,61 @@ namespace CustomControls
             }
         }// DataGridView1_EditingControlShowing
 
-        private void KmTextBox_KeyPress(object sender, KeyPressEventArgs ev)
+        private void DataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar))
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+
+            string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
+            DataGridViewCell cell = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            string value = cell.Value?.ToString();
+
+            switch (columnName)
             {
-                ev.Handled = true;
-            }
-        }
-
-        private void TextBox_KeyPress_DayColumns(object sender, KeyPressEventArgs e)
-        {
-            TextBox textBox = (TextBox)sender;
-
-            if (char.IsDigit(e.KeyChar) || char.IsControl(e.KeyChar))
-            {
-                return;
-            }
-
-            if (e.KeyChar == '.' || e.KeyChar == ',')
-            {
-                if (textBox.Text.EndsWith(','))
-                {
-                    e.Handled = true;
-                    return;
-                }
-
-                if (textBox.SelectionStart == textBox.Text.Length || textBox.Text.Length == 0)
-                {
-                    if (e.KeyChar == '.')
+                case "Projecttype":
+                    // Sla gecombineerde waarde op (afkortingen;volledige waarden)
+                    if (dataGridView1.EditingControl is CheckedComboBox combo)
                     {
-                        e.KeyChar = ',';
+                        cell.Value = ((DataGridViewCheckedComboBoxCell)cell).GetCombinedValue(combo);
+
+                        // De source van de filtered combobox moet gerest worden als er andere projecttypes zijn geselecteerd
+                        dataGridView1.Rows[e.RowIndex].Cells["Projectnummer"].Value = null; // Andere cel! Project *NUMMER*
+
                     }
-                    return;
-                }
-                else
-                {
-                    e.Handled = true;
-                    return;
-                }
-            }
-
-            e.Handled = true;
-        }
-
-        private void DataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-        {
-            if (e.ColumnIndex >= 0)
-            {
-                string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
-
-                if (columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||
-                    columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo")
-                {
-                    if (e.Value != null && e.Value is string value && value.EndsWith(","))
+                    else
                     {
-                        e.Value = value + "5";
-                        e.FormattingApplied = true;
+                        cell.Value = string.Empty; // Reset de waarde als er geen editing control is
                     }
-                }
+
+                    break;
+
+                case "Ma":
+                case "Di":
+                case "Wo":
+                case "Do":
+                case "Vr":
+                case "Za":
+                case "Zo":
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        string valueToParse = value.EndsWith(",") ? value + "5" : value;
+                        valueToParse = valueToParse.Replace(',', '.');
+
+                        if (double.TryParse(valueToParse, out double hours))
+                        {
+                            cell.Value = hours;
+                            ParentForm? ComputeTotal1(cell); // Roep de berekening van het totaal aan
+                        }
+                        else
+                        {
+                            ShowValidationError($"Ongeldige invoer: '{value}'. Voer een getal in (bv. 1,5 of 2).", e.RowIndex, columnName);
+                            cell.Value = value; // Behoud originele waarde voor correctie
+                        }
+                    }
+                    break;
+
+                    // Optioneel: validatie voor andere kolommen
+                    // case "kmDienstreis":
+                    //    break;
             }
         }
 
@@ -437,5 +439,6 @@ namespace CustomControls
                 }
             }
         }
+        #endregion DataGridView1 events
     }
 }// namespace CustomControls

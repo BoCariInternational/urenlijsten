@@ -199,6 +199,11 @@ namespace CustomControls
                 .ToList();
         }
 
+        public string GetTextBoxText()
+        {
+            return _textBox.Text;
+        }
+
         public List<string> GetCheckedValuesShort()
         {
             return _checkedListBox.CheckedItems

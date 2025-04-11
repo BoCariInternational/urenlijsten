@@ -8,6 +8,15 @@ namespace CustomControls
     // CheckedComboBox cel implementatie
     public class DataGridViewCheckedComboBoxCell : DataGridViewTextBoxCell
     {
+        // Single source of truth for the combined value. Used by ParseFormattedValue aand CellEndEdit
+        public string GetCombinedValue(CheckedComboBox combo)
+        {
+            string displayValues = combo.GetTextBoxText();
+            string realValues = string.Join(",", combo.GetCheckedValues());
+            return $"{displayValues};{realValues}";
+        }
+
+        // Wordt aangeroepen door de DataGridView tijdens databinding en validatie
         public override object ParseFormattedValue(
             object formattedValue,
             DataGridViewCellStyle cellStyle,
@@ -16,9 +25,7 @@ namespace CustomControls
         {
             if (DataGridView.EditingControl is CheckedComboBox combo)
             {
-                string displayValues = string.Join(",", combo.GetCheckedValuesShort()); // Afgekort
-                string realValues = string.Join(",", combo.GetCheckedValues());        // Volledig
-                return $"{displayValues};{realValues}";
+                return GetCombinedValue(combo);
             }
             return string.Empty;
         }
