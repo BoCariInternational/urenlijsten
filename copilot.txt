@@ -1,0 +1,45 @@
+ {
+            // Ensure the dropdown panel is added to the ParentForm's controls
+            if (ParentForm != null && !ParentForm.Controls.Contains(_dropdownPanel))
+            {
+            ParentForm.Controls.Add(_dropdownPanel);
+            }
+
+            // Determine the position of the top-left corner of your custom control on the screen
+            var controlScreenPos = PointToScreen(Point.Empty);
+
+            // Calculate the position of the bottom-left corner of your custom control on the screen
+            var controlScreenPosBottom = PointToScreen(new Point(0, Height));
+
+            // Convert screen coordinates back to form coordinates
+            var controlFormPos = ParentForm.PointToClient(controlScreenPos);
+            var controlFormPosBottom = ParentForm.PointToClient(controlScreenPosBottom);
+
+            // Determine the available space below the control
+            int spaceBelow = Screen.GetWorkingArea(controlScreenPosBottom).Bottom - controlScreenPosBottom.Y;
+
+            _dropdownPanel.Width = Width;
+
+            // Calculate the desired height based on the number of items
+            int itemCount = _checkedListBox.Items.Count;
+            int itemHeight = _checkedListBox.ItemHeight > 0 ? _checkedListBox.ItemHeight : 16; // Use the ItemHeight of the CheckedListBox or a default value
+            int preferredHeight = itemCount * itemHeight + 2; // +2 for the borders
+
+            // Set a maximum height (e.g., 200 pixels) to prevent the dropdown from becoming too large
+            const int maxHeight = 200;
+            _dropdownPanel.Height = Math.Max(preferredHeight, 20);
+            _dropdownPanel.Height = Math.Min(preferredHeight, maxHeight);
+
+            if (spaceBelow > _dropdownPanel.Height)
+            {
+            // Open downward: place the top-left corner of the dropdown panel
+            // directly below the bottom-left corner of the custom control
+            _dropdownPanel.Location = controlFormPosBottom;
+            }
+            else
+            {
+            // Open upward: place the bottom-left corner of the dropdown panel
+            // directly above the top-left corner of the custom control
+            _dropdownPanel.Location = new Point(controlFormPos.X, controlFormPos.Y - _dropdownPanel.Height);
+            }
+        }

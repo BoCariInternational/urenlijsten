@@ -54,8 +54,8 @@ namespace CustomControls
             public string TypeName { get; set; } // Een string member om de project type naam op te slaan
 
             public override string ToString() => TypeName;// Lange naam voor checkboxes
-            public string ToStringShort() =>  TypeName.Substring(0, 3); // Korte naam voor textbox (kan eventueel aangepast worden)
-                                                                        // Note: lengte strings moet minstens 3 zijn.
+            public string ToStringShort() => TypeName.Substring(0, 3); // Korte naam voor textbox (kan eventueel aangepast worden)
+                                                                       // Note: lengte strings moet minstens 3 zijn.
         }
 
         //private
@@ -182,45 +182,71 @@ namespace CustomControls
 
         private void DataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+
+            string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
+            DataGridViewCell cell = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            string value = cell.Value?.ToString();
+
+            switch (columnName)
             {
-                string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
-
-                // Als Projecttype verandert, reset Projectnummer
-                if (columnName == "Projecttype")
-                {
+                case "Projecttype":
+                    // Reset Projectnummer bij wijziging Projecttype
                     dataGridView1.Rows[e.RowIndex].Cells["Projectnummer"].Value = null;
-                }
-                //else
 
-                if (columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||
-                    columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo")
-                {
-                    DataGridViewCell cell = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                    string value = cell.Value?.ToString();
+                    // Sla gecombineerde waarde op (afkortingen;volledige waarden)
+                    if (dataGridView1.EditingControl is CheckedComboBox combo)
+                    {
+                        string displayValues = string.Join(",", combo.GetCheckedValuesShort());
+                        string realValues = string.Join(",", combo.GetCheckedValues());
+                        cell.Value = $"{displayValues};{realValues}";
+                    }
+                    break;
 
+                case "Ma":
+                case "Di":
+                case "Wo":
+                case "Do":
+                case "Vr":
+                case "Za":
+                case "Zo":
                     if (!string.IsNullOrEmpty(value))
                     {
-                        string valueToParse = value;
-                        if (value.EndsWith(","))
-                        {
-                            valueToParse += "5";
-                        }
-
-                        // Vervang komma door punt voor het parsen
+                        string valueToParse = value.EndsWith(",") ? value + "5" : value;
                         valueToParse = valueToParse.Replace(',', '.');
+
                         if (double.TryParse(valueToParse, out double hours))
                         {
-                            cell.Value = hours; // Sla de geparste double waarde op
+                            cell.Value = hours;
                         }
                         else
                         {
-                            MessageBox.Show($"Ongeldige invoer: '{value}'. Voer een getal in (bv. 1,5 of 2). \nRij: {e.RowIndex}, Kolom: {columnName}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            ShowValidationError($"Ongeldige invoer: '{value}'. Voer een getal in (bv. 1,5 of 2).", e.RowIndex, columnName);
+                            cell.Value = value; // Behoud originele waarde voor correctie
                         }
                     }
-                }
+                    break;
 
+                // Optioneel: validatie voor andere kolommen
+                case "kmDienstreis":
+                    if (!string.IsNullOrEmpty(value) && !int.TryParse(value, out _))
+                    {
+                        ShowValidationError("Voer alleen hele getallen in voor kilometers.", e.RowIndex, columnName);
+                    }
+                    break;
             }
+        }
+
+        private void ShowValidationError(string message, int rowIndex, string columnName)
+        {
+            MessageBox.Show(
+                text: $"{message}\nRij: {rowIndex + 1}, Kolom: {columnName}",
+                caption: "Validatiefout",
+                buttons: MessageBoxButtons.OK,
+                icon: MessageBoxIcon.Error
+            );
+            dataGridView1.Rows[rowIndex].Cells[columnName].Value = null; // Reset de waarde
+            dataGridView1.CurrentCell = dataGridView1.Rows[rowIndex].Cells[columnName]; // Zet de focus terug op de cel
         }
 
         private void DataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
@@ -411,64 +437,5 @@ namespace CustomControls
                 }
             }
         }
-    }
-
-    public class DataGridViewCheckedComboBoxColumn : DataGridViewColumn
-    {
-        public DataGridViewCheckedComboBoxColumn()
-            : base(new DataGridViewCheckedComboBoxCell())
-        {
-        }
-    }
-
-    // CheckedComboBox cel implementatie
-    public class DataGridViewCheckedComboBoxCell : DataGridViewTextBoxCell
-    {
-        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue,
-            DataGridViewCellStyle cellStyle)
-        {
-            base.InitializeEditingControl(rowIndex, initialFormattedValue, cellStyle);
-
-            if (DataGridView.EditingControl is CheckedComboBox combo)
-            {
-                if (initialFormattedValue != null)
-                {
-                    //RR! combo.SetItemsChecked(initialFormattedValue.ToString().Split(','));
-                }
-            }
-        }
-
-        public override Type EditType => typeof(CheckedComboBox);
-        public override Type ValueType => typeof(string);
-        public override object DefaultNewRowValue => string.Empty;
-    }
-   
-    // FilteredComboBox cel implementatie
-    public class DataGridViewFilteredComboBoxCell : DataGridViewTextBoxCell
-    {
-        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue,
-            DataGridViewCellStyle cellStyle)
-        {
-            base.InitializeEditingControl(rowIndex, initialFormattedValue, cellStyle);
-
-            if (DataGridView.EditingControl is FilteredComboBox<PanelUren.ProjectItem> combo)
-            {
-                if (initialFormattedValue != null)
-                {
-                    combo.SelectedValue = initialFormattedValue;
-                }
-            }
-        }
-
-        protected override object GetFormattedValue(object value, int rowIndex,
-            ref DataGridViewCellStyle cellStyle, TypeConverter valueTypeConverter,
-            TypeConverter formattedValueTypeConverter, DataGridViewDataErrorContexts context)
-        {
-            return value?.ToString() ?? string.Empty;
-        }
-
-        public override Type EditType => typeof(FilteredComboBox<PanelUren.ProjectItem>);
-        public override Type ValueType => typeof(int);
-        public override object DefaultNewRowValue => null;
     }
 }// namespace CustomControls

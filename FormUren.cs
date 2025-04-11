@@ -26,8 +26,6 @@ namespace Urenlijsten_App
             return -1; // De kolom met de opgegeven header is niet gevonden
         }
     }
-
-
     public class FormUren : Form
     {
         public static Image imageCalendar, imageAdd, imageDelete, imageEdit, imageUndo, imageOk;
@@ -226,6 +224,22 @@ namespace Urenlijsten_App
             return -1;
         }
 
+        private void CopyColumnProjectUren(string headerText, IXLWorksheet worksheet, DataGridView dv)
+        {
+            const int maxRows = 10;
+            const int startHeaderTemplate = 8;
+            //kopieer kolom met headerText:
+            int colDataGrid = dv.GetColumnIndexByHeader(headerText);
+            int colExcel = FindColumn(worksheet, headerText, startHeaderTemplate);
+            if (colDataGrid != -1 && colExcel != -1)
+            {
+                for (int row = 0; row < maxRows; ++row)
+                {
+                    Assign(worksheet.Cell(row + startHeaderTemplate + 1, colExcel), dv.Rows[row].Cells[colDataGrid].Value);
+                }
+            }
+        }
+
         private void BtnSubmit_Click(object sender, EventArgs e)
         {
             // 1) Maak een kopie van het sjabloon
@@ -252,37 +266,16 @@ namespace Urenlijsten_App
                     var worksheet = workbook.Worksheets.First(); // Ga ervan uit dat de data in het eerste werkblad moet komen
                     var dv = this.panelUren.dataGridView1;
 
-                    const int maxRows = 10;
+                    //const int maxRows = 10;
 
-                    //kopieer km:
-                    int colKmDataGrid = dv.GetColumnIndexByHeader("km");
-                    int colKmExcel = FindColumn(worksheet, "km", 8);
-                    if (colKmDataGrid != -1 && colKmExcel != -1)
+                    CopyColumnProjectUren("Klantnaam", worksheet, dv);
+                    CopyColumnProjectUren("km", worksheet, dv);
+                    var dagen = new[] { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
+                    foreach (var dag in dagen)
                     {
-                        for (int row = 0; row < maxRows; ++row)
-                        {
-                            Assign(worksheet.Cell(row + 9, colKmExcel), dv.Rows[row].Cells[colKmDataGrid].Value);
-                        }
+                        CopyColumnProjectUren(dag, worksheet, dv);
                     }
 
-                    // kopieer ma-zo:
-                    int colMaDataGrid = dv.GetColumnIndexByHeader("Ma");
-                    int colMaExcel = FindColumn(worksheet, "Ma", 8);
-                    if (colMaDataGrid != -1 && colMaExcel != -1)
-                    {
-                        for (int day = 1; day <= 7; ++day)
-                        {
-                            // copy day column
-                            for (int row = 0; row < maxRows; ++row)
-                            {
-                                Assign(worksheet.Cell(row + 9, colMaExcel), dv.Rows[row].Cells[colMaDataGrid].Value);
-                            }
-
-                            // Next day = next column
-                            ++colMaDataGrid;
-                            ++colMaExcel;
-                        }
-                    }
 
                     int col;
                     col = FindColumn(worksheet, "Naam", 2); worksheet.Cell(2, col + 1).Value = panelLogoNaam.txtName.Text;
