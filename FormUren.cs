@@ -27,6 +27,26 @@ namespace Urenlijsten_App
 
             return -1; // De kolom met de opgegeven header is niet gevonden
         }
+
+        public static bool IsInvalidCell(this DataGridViewCellEventArgs e)
+        {
+            return e == null || e.RowIndex < 0 || e.ColumnIndex < 0;
+        }
+
+        public static bool IsInvalidCell(this DataGridViewCellCancelEventArgs e)
+        {
+            return e == null || e.RowIndex < 0 || e.ColumnIndex < 0;
+        }
+
+        public static bool IsInvalidCell(this DataGridViewCellFormattingEventArgs e)
+        {
+            return e == null || e.RowIndex < 0 || e.ColumnIndex < 0;
+        }
+
+        public static bool IsInvalidCell(this DataGridViewCellValidatingEventArgs e)
+        {
+            return e == null || e.RowIndex < 0 || e.ColumnIndex < 0;
+        }
     }
 
     public class FormUren : Form

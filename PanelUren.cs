@@ -7,8 +7,10 @@ using CustomControls;
 using System.ComponentModel;
 using Newtonsoft.Json;
 using ClosedXML.Excel;
-using Urenlijsten_App;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Draw = System.Drawing;
+using Urenlijsten_App;
+
 
 // Vereiste interfaces
 public interface IShortNameable
@@ -19,11 +21,11 @@ public interface IShortNameable
 
 namespace CustomControls
 {
-    
+
     public class PanelUren : Panel
     {
-        public DataGridView dataGridView1;
-        // In dataGridView1:
+        public DataGridView dv;
+        // In dv:
         private int colMa;
         private int colTotal;
         private int colKm;
@@ -128,30 +130,124 @@ namespace CustomControls
             this.Dock = DockStyle.Fill;
             this.BorderStyle = BorderStyle.FixedSingle;
 
-            dataGridView1 = new DataGridView
+            dv = new DataGridView
             {
                 Dock = DockStyle.Fill,
                 AllowUserToAddRows = false,
                 RowCount = 21,
-                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize
+                ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
+
             };
 
             AddColumns();
-            this.Controls.Add(dataGridView1);
+            this.Controls.Add(dv);
+            this.BackColor = Draw.Color.Magenta;
 
-            dataGridView1.CellValidating += DataGridView1_CellValidating;
-            dataGridView1.EditingControlShowing += DataGridView1_EditingControlShowing;
-            dataGridView1.CellEndEdit += DataGridView1_CellEndEdit;
-            dataGridView1.CellFormatting += DataGridView1_CellFormatting;
+            // 1.CellFormatting        Wanneer de cel wordt getekend (lezen/weergeven)
+            // 2.CellBeginEdit         Gebruiker begint met editen
+            // 3.EditingControlShowing De bewerkbare control (bijv. TextBox, ComboBox) wordt getoond
+            // 4.CellValidating        Net voordat de bewerking wordt afgesloten (valideer invoer)
+            // 5.CellEndEdit           Bewerken is klaar, waarde is toegepast
+
+            dv.CellClick += dv_CellClick;
+            dv.SelectionChanged += dv_SelectionChanged;
+            dv.CellFormatting += dv_CellFormatting;
+            //dv.CellBeginEdit += dv_CellBeginEdit;
+            dv.EditingControlShowing += dv_EditingControlShowing;
+            dv.CellValidating += dv_CellValidating;
+            dv.CellEndEdit += dv_CellEndEdit;
+
+            int row, col;
+            bool b = true;
+            for (row = 0; row < rowTotal2; ++row)
+            {
+                if (row == rowTotal1) continue;
+                if (b)
+                    dv.Rows[row].DefaultCellStyle.BackColor = Draw.Color.LightGoldenrodYellow;
+                b = !b;
+            }
+
+            // Maak vlak links-onder grijs
+            // Conflicteert met dv.Rows[row].DefaultCellStyle.BackColor
+            // for (row = rowSpacer + 1; row < rowTotal2; ++row)
+            // {
+            //     for (col = 0; col < colKm - 1; ++col)
+            //         dv.Rows[row++].Cells[col].Style.BackColor = Draw.Color.DarkGray;
+            // 
+            // }
+
+            // RR! Het is wellicht beter om dit uit het template te lezen.
+            row = rowSpacer + 1;
+            col = colKm - 1;
+            dv.Rows[row++].Cells[col].Value = "Dokter/tandarts";
+            dv.Rows[row++].Cells[col].Value = "Buitengewoon verlof";
+            dv.Rows[row++].Cells[col].Value = "Feestdagen";
+            dv.Rows[row++].Cells[col].Value = "Tijd voor tijd";
+            dv.Rows[row++].Cells[col].Value = "Vakantieverlof";
+            dv.Rows[row++].Cells[col].Value = "Ziek";
+
+            // RR! Het is wellicht beter om dit uit het template te lezen.
+            row = rowSpacer + 1;
+            col++;
+            dv.Rows[row++].Cells[col].Value = 1;
+            dv.Rows[row++].Cells[col].Value = 2;
+            dv.Rows[row++].Cells[col].Value = 3;
+            dv.Rows[row++].Cells[col].Value = 4;
+            dv.Rows[row++].Cells[col].Value = 5;
+            dv.Rows[row++].Cells[col].Value = 6;
+
+            dv.Rows[rowSpacer].DefaultCellStyle.BackColor = Draw.Color.DarkGray;
+            //dv.Rows[rowSpacer].DefaultCellStyle.ForeColor = Draw.Color.DarkGray;
+            dv.Rows[rowSpacer].ReadOnly = true;
+
+            dv.Rows[rowTotal1].ReadOnly = true;
+            dv.Rows[rowTotal2].ReadOnly = true;
+            dv.Rows[rowTotal1].DefaultCellStyle.Font = new Draw.Font(dv.Font, FontStyle.Bold);
+            dv.Rows[rowTotal2].DefaultCellStyle.Font = new Draw.Font(dv.Font, FontStyle.Bold);
+            dv.Rows[rowTotal1].Cells[colKm - 1].Value = "Totaal";
+            dv.Rows[rowTotal2].Cells[colKm - 1].Value = "Totaal";
+
+            dv.Columns[colTotal].ReadOnly = true;
+            dv.Columns[colTotal].DefaultCellStyle.Font = new Draw.Font(dv.Font, FontStyle.Bold);
+
+            for (row = rowTotal1; row <= rowTotal2; ++row)
+            {
+                for (col = 0; col <= colKm; ++col)
+                    dv.Rows[row].Cells[col].ReadOnly = true;
+            }
+
+            for (col = colKm; col <= colTotal; ++col)
+            {
+                dv.Columns[col].Width = (col == colTotal) ? 50 : 40;
+                //dv.Columns[col].MinimumWidth = 50,
+                dv.Columns[col].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                dv.Columns[col].Resizable = DataGridViewTriState.False;
+            }
+            dv.Columns[colKm].Width = 75;
+            dv.Columns["Projectnummer"].MinimumWidth = 120;
+
+            dv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+            int defaultRowHeight = dv.Rows[0].Height;
+            // Stel de standaard hoogte in voor alle rijen
+            dv.RowTemplate.Height = defaultRowHeight;
+            dv.Rows[rowSpacer].Height = defaultRowHeight / 2;
+
+            dv.AllowUserToOrderColumns = false;
+            dv.ColumnHeadersDefaultCellStyle.Font = new Draw.Font(dv.Font, FontStyle.Bold);
+
+            dv.DefaultCellStyle.SelectionBackColor = Draw.Color.LightSkyBlue;
+            dv.MultiSelect = false;
+            dv.SelectionMode = DataGridViewSelectionMode.CellSelect;  // Optioneel: zet de selectie op celniveau
         }
 
         private void AddColumns()
         {
             // Maak kolom 0 onzichtbaar:
-            dataGridView1.Columns[0].Visible = false;
+            dv.Columns[0].Visible = false;
 
             // Klantnaam
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Klantnaam", HeaderText = "Klantnaam" });
+            dv.Columns.Add(new DataGridViewTextBoxColumn { Name = "Klantnaam", HeaderText = "Klantnaam" });
 
             // Projecttype (CheckedComboBox filter)
             /*
@@ -167,7 +263,7 @@ namespace CustomControls
                 Name = "Projecttype",
                 HeaderText = "Projecttype"
             };
-            dataGridView1.Columns.Add(columnProjectType);
+            dv.Columns.Add(columnProjectType);
 
             // Projectnummer (FilteredComboBox)
             var columnProjectNumber = new DataGridViewColumn
@@ -176,23 +272,23 @@ namespace CustomControls
                 HeaderText = "Projectnummer",
                 CellTemplate = new DataGridViewFilteredComboBoxCell()
             };
-            dataGridView1.Columns.Add(columnProjectNumber);
+            dv.Columns.Add(columnProjectNumber);
 
             // km dienstreis
-            colKm = dataGridView1.ColumnCount;
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "kmDienstreis", HeaderText = "km dienstreis" });
+            colKm = dv.ColumnCount;
+            dv.Columns.Add(new DataGridViewTextBoxColumn { Name = "kmDienstreis", HeaderText = "km dienstreis" });
 
             // Dag columns
-            colMa = dataGridView1.ColumnCount;
+            colMa = dv.ColumnCount;
             string[] days = { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
             foreach (var day in days)
             {
-                dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = day, HeaderText = day });
+                dv.Columns.Add(new DataGridViewTextBoxColumn { Name = day, HeaderText = day });
             }
 
             // Totaal
-            colTotal = dataGridView1.ColumnCount;
-            dataGridView1.Columns.Add(new DataGridViewTextBoxColumn { Name = "Totaal", HeaderText = "Totaal", ReadOnly = true });
+            colTotal = dv.ColumnCount;
+            dv.Columns.Add(new DataGridViewTextBoxColumn { Name = "Totaal", HeaderText = "Totaal", ReadOnly = true });
         }
 
         // copy/submit methods
@@ -213,7 +309,7 @@ namespace CustomControls
 
         public void CopyOnSubmit(IXLWorksheet worksheet)
         {
-            var dv = dataGridView1;
+            var dv = this.dv;
 
             //const int rowTotal1 = 10;
 
@@ -227,17 +323,17 @@ namespace CustomControls
 
         }
 
-        
+
         // ComputeTotal1 (part of horizontal row of totals) for column with headerText
         public void ComputeTotal1(string headerText, IXLWorksheet worksheet)
         {
-            int colDataGrid = dataGridView1.GetColumnIndexByHeader(headerText);
+            int colDataGrid = dv.GetColumnIndexByHeader(headerText);
             if (colDataGrid != -1)
             {
                 double sum = 0;
                 for (int row = 0; row < rowTotal1; ++row)
                 {
-                    var value = dataGridView1.Rows[row].Cells[colDataGrid].Value.ToString();
+                    var value = dv.Rows[row].Cells[colDataGrid].Value.ToString();
                     if (double.TryParse(value, out double number))
                     {
                         sum += number;
@@ -255,7 +351,7 @@ namespace CustomControls
             double sum = 0.0;
             for (int row = 0; row < rowTotal1; ++row)
             {
-                var value = dataGridView1.Rows[row].Cells[col].Value?.ToString();
+                var value = dv.Rows[row].Cells[col].Value?.ToString();
                 if (double.TryParse(value, out double number))
                 {
                     sum += number;
@@ -263,9 +359,9 @@ namespace CustomControls
             }
 
             if (sum < 0.499)
-                dataGridView1.Rows[rowTotal1].Cells[col].Value = "";
+                dv.Rows[rowTotal1].Cells[col].Value = "";
             else
-                dataGridView1.Rows[rowTotal1].Cells[col].Value = sum;
+                dv.Rows[rowTotal1].Cells[col].Value = sum;
 
             //=======================================================
 
@@ -274,7 +370,7 @@ namespace CustomControls
             sum = 0.0;
             for (int row = rowTotal1; row < rowTotal2; ++row)
             {
-                var value = dataGridView1.Rows[row].Cells[col].Value?.ToString();
+                var value = dv.Rows[row].Cells[col].Value?.ToString();
                 if (double.TryParse(value, out double number))
                 {
                     sum += number;
@@ -282,9 +378,9 @@ namespace CustomControls
             }
 
             if (sum < 0.499)
-                dataGridView1.Rows[rowTotal2].Cells[col].Value = "";
+                dv.Rows[rowTotal2].Cells[col].Value = "";
             else
-                dataGridView1.Rows[rowTotal2].Cells[col].Value = sum;
+                dv.Rows[rowTotal2].Cells[col].Value = sum;
         }
 
         private void ComputeTotalRow(int row)
@@ -295,7 +391,7 @@ namespace CustomControls
             double sum = 0.0;
             for (int col = colMa; col < colTotal; ++col)
             {
-                var value = dataGridView1.Rows[row].Cells[col].Value?.ToString();
+                var value = dv.Rows[row].Cells[col].Value?.ToString();
                 if (double.TryParse(value, out double number))
                 {
                     sum += number;
@@ -303,9 +399,9 @@ namespace CustomControls
             }
 
             if (sum < 0.499)
-                dataGridView1.Rows[row].Cells[colTotal].Value = "";
+                dv.Rows[row].Cells[colTotal].Value = "";
             else
-                dataGridView1.Rows[row].Cells[colTotal].Value = sum;
+                dv.Rows[row].Cells[colTotal].Value = sum;
         }
 
 
@@ -352,7 +448,8 @@ namespace CustomControls
             e.Handled = true;
         }
 
-        #region DataGridView1 events
+        #region dv events
+
         private void ShowValidationError(string message, int rowIndex, string columnName)
         {
             MessageBox.Show(
@@ -361,31 +458,78 @@ namespace CustomControls
                 buttons: MessageBoxButtons.OK,
                 icon: MessageBoxIcon.Error
             );
-            dataGridView1.Rows[rowIndex].Cells[columnName].Value = null; // Reset de waarde
-            dataGridView1.CurrentCell = dataGridView1.Rows[rowIndex].Cells[columnName]; // Zet de focus terug op de cel
+            dv.Rows[rowIndex].Cells[columnName].Value = null; // Reset de waarde
+            dv.CurrentCell = dv.Rows[rowIndex].Cells[columnName]; // Zet de focus terug op de cel
         }
 
-        private void DataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
-        {
-            if (e.ColumnIndex >= 0)
-            {
-                string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
 
-                if (columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||
-                    columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo")
+        private void dv_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dv.SelectedCells.Count > 0)
+            {
+                var selectedCell = dv.SelectedCells[0];
+
+                // Dit zorgt ervoor dat ReadOnly cellen
+                // zowel niet bewerkbaar als niet selecteerbaar zijn.
+                if (selectedCell.ReadOnly)
                 {
-                    if (e.Value != null && e.Value is string value && value.EndsWith(","))
+                    dv.ClearSelection();
+                }
+
+                // Als er meerdere cellen geselecteerd zijn,
+                // deselecteer dan alles behalve de eerste geselecteerde cel
+                if (dv.SelectedCells.Count > 1)
+                {
+                    for (int i = 1; i < dv.SelectedCells.Count; i++)
                     {
-                        e.Value = value + "5";
-                        e.FormattingApplied = true;
+                        dv.SelectedCells[i].Selected = false;
                     }
                 }
             }
         }
 
-        private void DataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        // Dit zorgt ervoor dat ReadOnly cellen
+        // zowel niet bewerkbaar als niet selecteerbaar zijn.
+        private void dv_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            string columnName = dataGridView1.Columns[dataGridView1.CurrentCell.ColumnIndex].Name;
+            if (e.IsInvalidCell()) return;
+            // Controleer of de geselecteerde cel niet bewerkbaar is
+            if (dv.Rows[e.RowIndex].Cells[e.ColumnIndex].ReadOnly)
+            {
+                dv.ClearSelection();
+            }
+        }
+
+        private void dv_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.IsInvalidCell()) return;
+
+            string columnName = dv.Columns[e.ColumnIndex].Name;
+
+            if (columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||
+                columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo")
+            {
+                if (e.Value != null && e.Value is string value && value.EndsWith(","))
+                {
+                    e.Value = value + "5";
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
+        /*
+        private void dv_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            if (e.IsInvalidCell()) return;
+            int row = e.RowIndex;
+            int col = e.ColumnIndex;
+        }
+        */
+
+        private void dv_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            if (dv.CurrentCell == null) return;
+            string columnName = dv.Columns[dv.CurrentCell.ColumnIndex].Name;
 
             if (columnName == "Projecttype" && e.Control is CheckedComboBox comboProjectType)
             {
@@ -393,59 +537,28 @@ namespace CustomControls
             }
             else if (columnName == "Projectnummer" && e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
             {
-                // Haal de CheckedComboBox van de kolom "Projecttype" op
-                var editingControl = dataGridView1.EditingControl as CheckedComboBox;
+                var editingControl = dv.EditingControl as CheckedComboBox;
 
                 if (editingControl != null)
                 {
-                    // Stap 1: Haal de geselecteerde items op als strings (TypeName van ProjectTypeWrapper)
                     var selectedTypes = editingControl.GetCheckedValues();
-
-                    // Stap 2: Converteer de geselecteerde strings naar hash codes
                     var selectedTypeInts = selectedTypes
                         .Select(type => type.GetHashCode())
                         .ToList();
 
-                    // Stap 4: Filter projectDataJson.allProjects op basis van de hash codes
                     comboProjectCode.DataSource = projectDataJson.allProjects
                         .Where(project => selectedTypeInts.Contains(project.projectTypeInt))
-                        //.OrderBy(p => p.projectCode)
                         .ToList();
                 }
                 else
                 {
-                    // Als er geen editing control is (bijv. bij het laden van de grid),
-                    // toon dan alle projecten
-                    comboProjectCode.DataSource = projectDataJson.allProjects
-                        //.OrderBy(p => p.projectCode)
-                        .ToList();
+                    comboProjectCode.DataSource = projectDataJson.allProjects.ToList();
                 }
-
-                /* When you set the DataSource of a ComboBox to a collection of objects (like a List<ProjectItem>), 
-                 * the ComboBox needs to know which property of those objects to display in the dropdown list and 
-                 * which property to use as the underlying value when an item is selected. 
-                 * This is where DisplayMember and ValueMember come in.
-                 * 
-                 * Explanation of the Properties:
-                 * DisplayMember = "ToString";: This property tells the ComboBox which property of the objects in
-                 * its DataSource should be used to display the text for each item in the dropdown list. In this 
-                 * specific case, it's set to "ToString". This means that when the ComboBox needs to show the text
-                 * for a ProjectItem object, it will call the ToString() method of that object and use the returned string. 
-                 * Looking back at the ProjectItem class definition, the ToString() method is defined as 
-                 * public string ToString() => $"{ProjectCode} - {Description}";. 
-                 * So, each item in the dropdown will show the project code followed by a hyphen and the description.
-                 * 
-                 * ValueMember = "ProjectCode";: This property tells the ComboBox which property of the objects in its
-                 * DataSource should be used as the actual value associated with each item. When an item is selected in
-                 * the ComboBox, the SelectedValue property of the ComboBox will return the value of the property
-                 * specified by ValueMember for the selected object. In this case, it's set to "ProjectCode". 
-                 */
 
                 comboProjectCode.DisplayMember = "ToString";
                 comboProjectCode.ValueMember = "ProjectCode";
             }
 
-            // Validatie voor dagen en km
             if ((columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||
                  columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo")
                 && e.Control is TextBox dayTextBox)
@@ -459,37 +572,56 @@ namespace CustomControls
 
             if (columnName == "kmDienstreis" && e.Control is TextBox kmTextBox)
             {
-                kmTextBox.KeyPress -= KmTextBox_KeyPress; // Ontkoppel eventueel bestaande handler
-                kmTextBox.KeyPress += KmTextBox_KeyPress; // Koppel de named method handler
+                kmTextBox.KeyPress -= KmTextBox_KeyPress;
+                kmTextBox.KeyPress += KmTextBox_KeyPress;
             }
-        }// DataGridView1_EditingControlShowing
+        }
 
-        private void DataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        private void dv_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            if (e.IsInvalidCell()) return;
+            string columnName = dv.Columns[e.ColumnIndex].Name;
 
-            string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
-            DataGridViewCell cell = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            if (columnName == "kmDienstreis" && !string.IsNullOrEmpty(e.FormattedValue?.ToString()))
+            {
+                if (int.TryParse(e.FormattedValue.ToString(), out int km))
+                {
+                    if (km >= 1000)
+                    {
+                        e.Cancel = true;
+                        MessageBox.Show("Het aantal kilometers mag niet hoger zijn dan 999.");
+                    }
+                }
+                else
+                {
+                    e.Cancel = true;
+                    MessageBox.Show("Voer alleen hele getallen in voor km dienstreis.");
+                }
+            }
+        }
+
+        private void dv_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.IsInvalidCell()) return;
+
+            string columnName = dv.Columns[e.ColumnIndex].Name;
+            DataGridViewCell cell = dv.Rows[e.RowIndex].Cells[e.ColumnIndex];
             string value = cell.Value?.ToString();
 
             switch (columnName)
             {
                 case "Projecttype":
-                    // Sla gecombineerde waarde op (afkortingen;volledige waarden)
-                    if (dataGridView1.EditingControl is CheckedComboBox combo)
+                    if (dv.EditingControl is CheckedComboBox combo)
                     {
                         cell.Value = ((DataGridViewCheckedComboBoxCell)cell).GetCombinedValue(combo);
-
-                        // De source van de filtered combobox moet gerest worden als er andere projecttypes zijn geselecteerd
-                        dataGridView1.Rows[e.RowIndex].Cells["Projectnummer"].Value = null; // Andere cel! Project *NUMMER*
-
+                        dv.Rows[e.RowIndex].Cells["Projectnummer"].Value = null;
                     }
                     else
                     {
-                        cell.Value = string.Empty; // Reset de waarde als er geen editing control is
+                        cell.Value = string.Empty;
                     }
-
                     break;
+
                 case "Ma":
                 case "Di":
                 case "Wo":
@@ -512,62 +644,16 @@ namespace CustomControls
                         else
                         {
                             ShowValidationError($"Ongeldige invoer: '{value}'. Voer een getal in (bv. 1,5 of 2).", e.RowIndex, columnName);
-                            cell.Value = value; // Behoud originele waarde voor correctie
+                            cell.Value = value;
                         }
                     }
                     break;
+
                 case "km Dienstreis":
                     ComputeTotalColumn(e.ColumnIndex);
                     break;
             }
         }
-
-        private void DataGridView1_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
-        {
-            string columnName = dataGridView1.Columns[e.ColumnIndex].Name;
-
-            // Validate km dienstreis
-            if (columnName == "kmDienstreis" && !string.IsNullOrEmpty(e.FormattedValue?.ToString()))
-            {
-                if (int.TryParse(e.FormattedValue.ToString(), out int km))
-                {
-                    if (km >= 1000)
-                    {
-                        e.Cancel = true;
-                        MessageBox.Show("Het aantal kilometers mag niet hoger zijn dan 999.");
-                    }
-                }
-                else
-                {
-                    e.Cancel = true;
-                    MessageBox.Show("Voer alleen hele getallen in voor km dienstreis.");
-                }
-            }
-
-            // Validate day columns
-            if (columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||
-                columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo")
-            {
-                if (!string.IsNullOrEmpty(e.FormattedValue?.ToString()))
-                {
-                    string value = e.FormattedValue.ToString();
-
-                    if (value.Contains("."))
-                    {
-                        if (!value.EndsWith(".5") || !double.TryParse(value, out _))
-                        {
-                            e.Cancel = true;
-                            MessageBox.Show("Alleen .5 is toegestaan voor halve uren");
-                        }
-                    }
-                    else if (!int.TryParse(value, out _))
-                    {
-                        e.Cancel = true;
-                        MessageBox.Show("Voer alleen cijfers in voor uren");
-                    }
-                }
-            }
-        }
-        #endregion DataGridView1 events
+        #endregion dv events
     }
 }// namespace CustomControls

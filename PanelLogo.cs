@@ -292,11 +292,11 @@ namespace Urenlijsten_App
         {
             if (rdoLogistics.Checked == true)
             {
-                lblCompany.Text = "Logistics";
+                lblCompany.Text = "BoCari Logistic Services B.V.";
             }
             else if (rdoInternational.Checked == true)
             {
-                lblCompany.Text = "International";
+                lblCompany.Text = "BoCari International B.V.";
             }
         }
 

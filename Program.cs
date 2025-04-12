@@ -8,12 +8,16 @@ namespace Urenlijsten_App
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-
-            //RR! try catch
-            ApplicationConfiguration.Initialize();
-            Application.Run(new FormUren());
+            try
+            {
+                ApplicationConfiguration.Initialize();
+                Application.Run(new FormUren());
+            }
+            catch (Exception ex)
+            {
+                // Log de fout of geef een foutmelding aan de gebruiker
+                MessageBox.Show("Er is een fout opgetreden: " + ex.Message);
+            }
         }
     }
 }
