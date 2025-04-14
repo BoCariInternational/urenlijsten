@@ -10,6 +10,7 @@ using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Draw = System.Drawing;
 using Urenlijsten_App;
+using System.Diagnostics;
 
 
 // Vereiste interfaces
@@ -35,6 +36,7 @@ namespace CustomControls
 
         // In (copy of) template (excel)
         private const int rowHeaderInTemplate = 8;
+        private static System.Windows.Forms.Control editControl = null;
 
 
         // ProjectItem class met alle vereiste properties
@@ -462,7 +464,6 @@ namespace CustomControls
             dv.CurrentCell = dv.Rows[rowIndex].Cells[columnName]; // Zet de focus terug op de cel
         }
 
-
         private void dv_SelectionChanged(object sender, EventArgs e)
         {
             if (dv.SelectedCells.Count > 0)
@@ -530,10 +531,24 @@ namespace CustomControls
         {
             if (dv.CurrentCell == null) return;
             string columnName = dv.Columns[dv.CurrentCell.ColumnIndex].Name;
+            editControl = e.Control;
 
             if (columnName == "Projecttype" && e.Control is CheckedComboBox comboProjectType)
             {
                 comboProjectType.SetDataSource(shortableProjectTypes);
+                var cellValue = dv.Rows[dv.CurrentCell.RowIndex].Cells[dv.CurrentCell.ColumnIndex].Value; //RR! Hack
+                if (cellValue is string combinedValue && !string.IsNullOrEmpty(combinedValue))
+                {
+                    string[] parts = combinedValue.Split(';');
+                    if (parts.Length == 2)
+                    {
+                        //string shortNames = parts[0];
+                        string longNames = parts[1];
+                        comboProjectType.SetCheckedItems(longNames.Split(',').ToList());
+
+                        //RR!! set flag monitoring
+                    }
+                }
             }
             else if (columnName == "Projectnummer" && e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
             {
@@ -611,15 +626,28 @@ namespace CustomControls
             switch (columnName)
             {
                 case "Projecttype":
-                    if (dv.EditingControl is CheckedComboBox combo)
+                    if (dv.EditingControl is CheckedComboBox combo1)
                     {
-                        cell.Value = ((DataGridViewCheckedComboBoxCell)cell).GetCombinedValue(combo);
-                        dv.Rows[e.RowIndex].Cells["Projectnummer"].Value = null;
+                        if (combo1.IsPanelVisible)
+                        {
+                            return; // Verlaat de event handler als het dropdown panel nog zichtbaar is
+                        }
+                        cell.Value = ((DataGridViewCheckedComboBoxCell)cell).GetCombinedValue(combo1);
+                    }
+                    else if (editControl is CheckedComboBox combo2)
+                    {
+                        if (combo2.IsPanelVisible)
+                        {
+                            return; // Verlaat de event handler als het dropdown panel nog zichtbaar is
+                        }
+                        cell.Value = combo2.GetCombinedValue();
                     }
                     else
                     {
-                        cell.Value = string.Empty;
+                        // Debug.Assert(false);
+                        cell.Value = "Leeg"; // string.Empty;
                     }
+
                     break;
 
                 case "Ma":

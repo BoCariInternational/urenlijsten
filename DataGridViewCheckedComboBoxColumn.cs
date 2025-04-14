@@ -11,9 +11,7 @@ namespace CustomControls
         // Single source of truth for the combined value. Used by ParseFormattedValue aand CellEndEdit
         public string GetCombinedValue(CheckedComboBox combo)
         {
-            string displayValues = combo.GetTextBoxText();
-            string realValues = string.Join(",", combo.GetCheckedValues());
-            return $"{displayValues};{realValues}";
+            return combo.GetCombinedValue();
         }
 
         // Wordt aangeroepen door de DataGridView tijdens databinding en validatie
@@ -30,26 +28,36 @@ namespace CustomControls
             return string.Empty;
         }
 
-        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue,
+        public override void InitializeEditingControl(int rowIndex, object /* formatted (= short) string*/ initialFormattedValue,
             DataGridViewCellStyle cellStyle)
         {
             base.InitializeEditingControl(rowIndex, initialFormattedValue, cellStyle);
 
+            /*
+            Onderstaande code is "te vroeg".
+            Vlak na deze method wordt dv_EditingControlShowin aangeroepen.
+            In geval van kolom "Projecttype" wordt comboProjectType.SetDataSource aangeroepen.
+            Deze cleart de selectie...
+
             if (DataGridView.EditingControl is CheckedComboBox combo)
             {
-                string combinedValue = initialFormattedValue?.ToString();
-                if (!string.IsNullOrEmpty(combinedValue))
-                {
-                    string realValuesPart = combinedValue.Split(';').Length > 1
-                        ? combinedValue.Split(';')[1]
-                        : string.Empty;
+                int projectTypeColumnIndex = this.ColumnIndex; // DataGridView.Columns["Projecttype"].Index;
+                object cellValue = DataGridView.Rows[rowIndex].Cells[projectTypeColumnIndex].Value;
 
-                    if (!string.IsNullOrEmpty(realValuesPart))
+                if (cellValue is string combinedValue && !string.IsNullOrEmpty(combinedValue))
+                {
+                    string[] parts = combinedValue.Split(';');
+                    if (parts.Length == 2)
                     {
-                        combo.SetCheckedItems(realValuesPart.Split(',').ToList());
+                        //string shortNames = parts[0];
+                        string longNames = parts[1];
+                        combo.SetCheckedItems(longNames.Split(',').ToList());
+                        // Gebruik shortName en longName om je combo te initialiseren
+                        // Bijvoorbeeld, de juiste items selecteren in de dropdown.
                     }
                 }
             }
+            */
         }
 
         protected override object GetFormattedValue(

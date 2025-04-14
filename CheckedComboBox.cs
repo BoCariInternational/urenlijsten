@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using Urenlijsten_App;
+using Time = System.Windows.Forms;
 
 namespace CustomControls
 {
@@ -21,6 +24,9 @@ namespace CustomControls
         private CheckedListBox _checkedListBox;
         private Panel _panelDropDown;
         private ToolTip _toolTip = new(); // Added ToolTip component
+        private Time.Timer _dropdownCloseTimer = new();
+        private bool startMonitoring = false;
+        private bool selectionHasChanged = false;
 
         // Constructor
         public CheckedComboBox()
@@ -32,8 +38,21 @@ namespace CustomControls
         // Public API
         public void SetDataSource<T>(List<T> items) where T : IShortNameable
         {
+            // Als _checkedListBox nog geen parent heeft,
+            // dan worden de _checkedListBox.Items niet ge-update!!!
+            if (ParentForm != null && !ParentForm.Controls.Contains(_panelDropDown))
+            {
+                ParentForm.Controls.Add(_panelDropDown);
+                ParentForm.Resize += ParentForm_Resize;
+            }
+
             _checkedListBox.DataSource = items;
-            UpdateTextDisplay();
+            ClearSelections();
+        }
+
+        private void ParentForm_Resize(object? sender, EventArgs e)
+        {
+            PositionDropdown(true);
         }
 
         // Initialization
@@ -50,6 +69,7 @@ namespace CustomControls
                 Visible = false,
                 BorderStyle = BorderStyle.FixedSingle,
             };
+
             _checkedListBox = new CheckedListBox
             {
                 Dock = DockStyle.Fill,
@@ -111,9 +131,8 @@ namespace CustomControls
                 TextAlign = ContentAlignment.MiddleCenter
             };
             _layoutPanel.Controls.Add(_btnDropDown, 1, 0);
-            this.Controls.Add(_layoutPanel);
 
-            // Clear All Button (◻)
+            // "Clear All"-Button (◻)
             _btnClear = new Button
             {
                 //Text = "◻", // White medium square (U+25FB)
@@ -128,11 +147,11 @@ namespace CustomControls
                 Enabled = false
             };
             _btnClear.FlatAppearance.BorderSize = 0;
-            _btnClear.FlatAppearance.MouseOverBackColor = Color.FromArgb(240, 240, 240);
+            //_btnClear.FlatAppearance.MouseOverBackColor = Color.FromArgb(240, 240, 240);
             _btnClear.Click += (s, e) => ClearSelections();
             _layoutPanel.Controls.Add(_btnClear, 2, 0);
 
-            // Select All Button (◼)
+            // "Select All"-Button (◼)
             _btnSelectAll = new Button
             {
                 Text = "◼",  // Black medium square (U+25FC)
@@ -144,10 +163,12 @@ namespace CustomControls
                 TextAlign = ContentAlignment.MiddleCenter,
                 Enabled = true
             };
-            _btnSelectAll.FlatAppearance.MouseOverBackColor = Color.FromArgb(240, 240, 240);
+            //_btnSelectAll.FlatAppearance.MouseOverBackColor = Color.FromArgb(240, 240, 240);
             _btnSelectAll.FlatAppearance.BorderSize = 0;
             _btnSelectAll.Click += (s, e) => SelectAll();
             _layoutPanel.Controls.Add(_btnSelectAll, 3, 0);
+
+            this.Controls.Add(_layoutPanel);
 
             // Add tooltips
             _toolTip.SetToolTip(_btnClear, "Clear All");
@@ -156,6 +177,12 @@ namespace CustomControls
             // ToolTip setup
             _toolTip.AutoPopDelay = 5000;
             _toolTip.InitialDelay = 500;
+
+            // Ensure the dropdown panel is added to the FormUren.Current's controls
+            if (ParentForm != null && !ParentForm.Controls.Contains(_panelDropDown))
+            {
+                ParentForm.Controls.Add(_panelDropDown);
+            }
             // @formatter: on
         }
 
@@ -189,6 +216,7 @@ namespace CustomControls
                 }
             }
             UpdateTextDisplay();
+            this.startMonitoring = true;
         }
 
         public List<string> GetCheckedValues()
@@ -212,6 +240,19 @@ namespace CustomControls
                 .ToList();
         }
 
+        public string GetCombinedValue()
+        {
+            string shortNames = GetTextBoxText();
+            string longNames = string.Join(",", GetCheckedValues());
+            return $"{shortNames};{longNames}";
+            //return "Civ,Ele,Ins;Civil,Electrical,Instrumentation"; //RR! hack 
+        }
+
+        public bool IsPanelVisible
+        {
+            get { return _panelDropDown != null && _panelDropDown.Visible; }
+        }
+
         // ---- Focus & Dropdown Management ----
         private void WireEvents()
         {
@@ -220,39 +261,131 @@ namespace CustomControls
             _btnDropDown.Click += (s, e) => ToggleDropdown();
 
             // Focus handling
-            _textBox.GotFocus += (s, e) => OnGotFocus(e);
-            _btnDropDown.GotFocus += (s, e) => OnGotFocus(e);
-            this.LostFocus += OnThisLostFocus;
+            //_textBox.GotFocus += (s, e) => OnGotFocus(e);
+            //_btnDropDown.GotFocus += (s, e) => OnGotFocus(e);
+            //this.LostFocus += OnThisLostFocus;
 
-            // Checkbox changes
-            _checkedListBox.ItemCheck += (s, e) => UpdateTextDisplay(e);
+            _textBox.KeyDown += OnTextBoxKeyDown;
+
+
+            // Checkbox
+            _checkedListBox.ItemCheck += _checkedListBox_ItemChecked;
+            _checkedListBox.SelectedIndexChanged += _checkedListBox_SelectedIndexChanged;
+            _checkedListBox.KeyDown += _checkedListBox_KeyDown;
+            _checkedListBox.LostFocus += _checkedListBox_LostFocus;
+
+            // Oneshot timer met pulsverlenging
+            _dropdownCloseTimer.Tick += _dropdownCloseTimer_Tick;
         }
 
-        protected override void OnGotFocus(EventArgs e)
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            //_textBox.BackColor = SystemColors.Highlight;
-            base.OnGotFocus(e);
+            // Handle F4 and Alt+Arrow keys for dropdown toggle
+            if (keyData == Keys.F4 || keyData == (Keys.Alt | Keys.Down) || keyData == (Keys.Alt | Keys.Up))
+            {
+                ToggleDropdown();
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
-        /*
-        private void OnThisLostFocus(object? sender, EventArgs e)
+        private void OnTextBoxKeyDown(object sender, KeyEventArgs e)
         {
-            if (!_panelDropDown.Bounds.Contains(PointToClient(MousePosition)))
+            if (e.KeyCode == Keys.Enter && _panelDropDown.Visible)
+            {
                 CloseDropdown();
-            _textBox.BackColor = SystemColors.Window;
+                e.Handled = true;
+            }
         }
-        */
 
-        private void OnThisLostFocus(object? sender, EventArgs e)
+        private void _checkedListBox_KeyDown(object sender, KeyEventArgs e)
         {
-            // Als muis zich links of rechts van de control bevindt, sluit dropdown
-            var mousePos = PointToClient(Control.MousePosition);
-            if (mousePos.X < 0 || mousePos.X > this.Width)
+            if (e.KeyCode == Keys.Enter)
+            {
+                CloseDropdown();
+                e.Handled = true;
+            }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                // Optionally restore previous selection here
+                CloseDropdown();
+                e.Handled = true;
+            }
+        }
+
+        private void _checkedListBox_ItemChecked(object sender, ItemCheckEventArgs e)
+        {
+            RestartDropdownCloseTimer();
+            UpdateTextDisplay(e);
+
+            //RR!! Zet eigen vlag nadat SetDataSource, ClearSelections
+            // Zie ook SetCheckedItems
+            if (startMonitoring)
+            {
+                selectionHasChanged = true;
+            }
+        }
+
+        private void _checkedListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RestartDropdownCloseTimer();
+        }
+
+        private void RestartDropdownCloseTimer()
+        {
+            // Pulsverlenging: herstart timer.
+            if (_dropdownCloseTimer.Enabled)
+            {
+                _dropdownCloseTimer.Stop();
+                _dropdownCloseTimer.Interval = 750;
+                _dropdownCloseTimer.Enabled = true;
+            }
+        }
+
+        private bool ContainsMouse()
+        {
+            try
+            {
+                var mousePos = PointToClient(Control.MousePosition); // Kan onder omstandigheden exception geven...
+                //return !(mousePos.X < 0 || mousePos.X > this.Width);
+                int eps = 20;
+                return !(mousePos.X < 0 - eps || mousePos.X > this.Width + eps);
+                //return (this.ClientRectangle.Contains(mousePos));
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private void _dropdownCloseTimer_Tick(object sender, EventArgs e)
+        {
+            // Timer expired.
+            // Dit betekent dat er geen gebruikersinteractie was met
+            // de _checkedListBox: geen (de)selectie van checkboxes,
+            // geen verandering van selectedItem (pijltjestoetsen, muis).
+
+            // Dit maakt de timer one shot.
+            if (!ContainsMouse())
+            {
+                _dropdownCloseTimer.Enabled = false;
+                CloseDropdown();
+            }
+            else
+            {
+                // Geen userinteractie, maar nog steeds "focus".
+                RestartDropdownCloseTimer();
+            }
+        }
+
+
+        private void _checkedListBox_LostFocus(object sender, EventArgs e)
+        {
+            if (!ContainsMouse())
             {
                 CloseDropdown();
             }
-
-            _textBox.BackColor = SystemColors.Window;
         }
 
         private void ToggleDropdown()
@@ -268,20 +401,28 @@ namespace CustomControls
             PositionDropdown();
             _panelDropDown.Show();
             _panelDropDown.BringToFront();
+            _dropdownCloseTimer.Interval = 1000; // Willekeurig
+            _dropdownCloseTimer.Enabled = true;
+            RestartDropdownCloseTimer();    // Start timer voor eerste keer.
         }
 
         private void CloseDropdown()
         {
             _panelDropDown.Hide();
+            _textBox.BackColor = SystemColors.Window;
+
+            if (selectionHasChanged)
+            {
+                // Notify DataGridView
+                EditingControlValueChanged = true; // Set the property
+                EditingControlDataGridView?.NotifyCurrentCellDirty(true);
+            }
         }
 
-        private void PositionDropdown()
+        private void PositionDropdown(bool resizing = false)
         {
-            // Ensure the dropdown panel is added to the FormUren.Current's controls
-            if (ParentForm != null && !ParentForm.Controls.Contains(_panelDropDown))
-            {
-                ParentForm.Controls.Add(_panelDropDown);
-            }
+            if (!_panelDropDown.Visible && resizing)
+                return;
 
             // Determine the position of the top-left corner of your custom control on the screen
             var controlScreenPos = PointToScreen(Point.Empty);
@@ -364,10 +505,12 @@ namespace CustomControls
                         selectedItems.Add(items[e.Index].ToStringShort());
                 }
 
+                selectedItems.Sort();
                 fullText = string.Join(", ", selectedItems);
                 text = TextHelpers.TruncateWithEllipsis(fullText, _textBox.Font, _textBox.Width - 10);
             }
 
+            //RR!!
             _textBox.Text = text;
             _toolTip.SetToolTip(_textBox, fullText);
             UpdateButtonStates(checkedCount);

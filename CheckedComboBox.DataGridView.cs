@@ -13,8 +13,8 @@ namespace CustomControls
 
         public object EditingControlFormattedValue
         {
-            get => _textBox.Text;
-            set => _textBox.Text = value?.ToString() ?? "";
+            get => GetCombinedValue();
+            set => _textBox.Text = "Blah"; //value?.ToString() ?? "";
         }
 
         public object GetEditingControlFormattedValue(DataGridViewDataErrorContexts context)
@@ -36,7 +36,7 @@ namespace CustomControls
         public bool EditingControlValueChanged
         {
             get => valueChanged;
-            set => valueChanged = value;
+            set => valueChanged = value; 
         }
 
         public bool RepositionEditingControlOnValueChange => false;
@@ -44,7 +44,7 @@ namespace CustomControls
         public DataGridView EditingControlDataGridView
         {
             get => dataGridView;
-            set => dataGridView = value;
+            set => dataGridView = value; // Het DataGridView vult dit zelf in!
         }
 
         public Cursor EditingPanelCursor => Cursors.Default;
@@ -71,13 +71,6 @@ namespace CustomControls
                 default:
                     return !dataGridViewWantsInputKey;
             }
-        }
-
-        protected override void OnTextChanged(EventArgs e)
-        {
-            base.OnTextChanged(e);
-            valueChanged = true;
-            dataGridView?.NotifyCurrentCellDirty(true);
         }
     }
 }

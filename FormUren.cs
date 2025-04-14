@@ -72,10 +72,15 @@ namespace Urenlijsten_App
             }
         }
 
+        CheckedComboBox cb;
+
         public FormUren()
         {
             Current = this;
             Initialize(); // Jouw eigen methode
+
+            var shortableProjectTypes = panelUren.projectDataJson.projectTypes.ConvertAll(type => new PanelUren.ShortableProjectType { TypeName = type });
+            cb.SetDataSource(shortableProjectTypes);
         }
 
         private void Initialize()
@@ -119,9 +124,9 @@ namespace Urenlijsten_App
             //RR!! test code
             Panel p = new()
             {
-                Width = 600,
+                Width = 800,
                 Dock = DockStyle.Left,
-                BackColor = Draw.Color.AliceBlue
+                BackColor = Draw.Color.SkyBlue,
             };
             Button b1 = new Button()
             {
@@ -131,13 +136,11 @@ namespace Urenlijsten_App
             };
             p.Controls.Add(b1);
 
-            CheckedComboBox cb = new()
+            cb = new()
             {
                 Dock = DockStyle.Left,
                 Width = 500
             };
-            var shortableProjectTypes = panelUren.projectDataJson.projectTypes.ConvertAll(type => new PanelUren.ShortableProjectType { TypeName = type });
-            cb.SetDataSource(shortableProjectTypes);
             p.Controls.Add(cb);
 
             Button b2 = new Button()
@@ -151,7 +154,8 @@ namespace Urenlijsten_App
             var ncb = new ComboBox()
             {
                 Dock = DockStyle.Left,
-                Text = "Blah"
+                Text = "Blah",
+                DataSource = new List<string> {"a", "b", "c" }
             };
             panelVerlof.Controls.Add(ncb);
 
