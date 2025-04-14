@@ -7,6 +7,7 @@ using DocumentFormat.OpenXml.VariantTypes;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.ComponentModel.DataAnnotations;
 using ClosedXML.Excel;
+using static CustomControls.CustomDateControl;
 
 
 namespace Urenlijsten_App
@@ -21,6 +22,7 @@ namespace Urenlijsten_App
         private DateTime _fromDate; // maandag
         private DateTime _toDate;   // vrijdag
         private bool validateOK = false;
+        private int isoWeek1 = -1;
 
         // Public widget declarations
         public TableLayoutPanel hLayout;
@@ -34,7 +36,7 @@ namespace Urenlijsten_App
         public TextBox txtName, txtWeek;
         public CustomDateControl ctrlWeek;
 
-        public DateTime FromDate
+        public DateTime FromDate // van-datum
         {
             get => _fromDate;
             set
@@ -45,23 +47,39 @@ namespace Urenlijsten_App
                     DayOfWeek.Sunday => value.AddDays(-6).Date,
                     _ => value.AddDays(-(int)value.DayOfWeek + 1).Date
                 };
-                ctrlWeek.Date = _fromDate.ToString("dd/MM/yyyy");
+                ctrlWeek.InputDate = _fromDate;         // Monday
 
                 _toDate = _fromDate.AddDays(4);
-                lblTotDate.Text = _toDate.ToString("dd/MM/yyyy");
-                validateOK = true;
+                lblTotDate.Text = _toDate.ToStringNL(); // Friday
 
                 // ISO 8601
                 // Eerste dag van de week: maandag
                 // Eerste week met ≥4 dagen in het nieuwe jaar
-                int isoWeek1 = ISOWeek.GetWeekOfYear(_fromDate);
-                txtWeek.Text = isoWeek1.ToString();
+                int isoWeek = ISOWeek.GetWeekOfYear(_fromDate); // weeknr
+                txtWeek.Text = isoWeek.ToString();
+
+                validateOK = true;
             }
         }
 
-        public DateTime ToDate
+        public string FromDateString
+        {
+            get => ctrlWeek.DateString;
+        }
+
+        public DateTime ToDate  // tot-datum
         {
             get => _toDate;
+        }
+
+        public string ToDateString
+        {
+            get => lblTotDate.Text;
+        }
+
+        public int WeekNr
+        {
+            get => this.isoWeek1;
         }
 
         public PanelLogo()
@@ -256,6 +274,7 @@ namespace Urenlijsten_App
             };
             tableNameWeek.Controls.Add(lblVan, 0, 2);
             tableNameWeek.Controls.Add(ctrlWeek, 1, 2);
+            ctrlWeek.DateChanged += CtrlWeek_DateChanged;
 
             // Row 3
             lblTot = new Label
@@ -286,6 +305,12 @@ namespace Urenlijsten_App
             AddColumnToHLayout(panelNameWeek);
 
             this.PerformLayout();
+        }
+
+        private void CtrlWeek_DateChanged(object sender, DateChangedEventArgs e)
+        {
+            if (e.SelectedDate.HasValue)
+                FromDate = e.SelectedDate.Value;
         }
 
         private void RadioButton_CheckedChanged(object sender, EventArgs e)
@@ -332,14 +357,14 @@ namespace Urenlijsten_App
         private void ValidateWeekHelper()
         {
             validateOK = ValidateWeek();
-            if (!validateOK)
-            {
-                txtWeek.BackColor = Color.LightCoral;
-            }
+            txtWeek.BackColor = validateOK ? SystemColors.Window : Color.LightCoral;
         }
 
         private bool ValidateWeek()
         {
+            if (string.IsNullOrWhiteSpace(txtWeek.Text))
+                return true;
+
             if (!int.TryParse(txtWeek.Text, out int weekNumber) || weekNumber < 1 || weekNumber > 53)
                 return false;
 
@@ -391,8 +416,8 @@ namespace Urenlijsten_App
         {
             int col;
             col = FormUren.FindColumn(worksheet, "Naam", 2); worksheet.Cell(2, col + 1).Value = txtName.Text;
-            col = FormUren.FindColumn(worksheet, "Week", 4); worksheet.Cell(4, col + 1).Value = txtWeek.Text;
-            col = FormUren.FindColumn(worksheet, "van", 5); worksheet.Cell(5, col + 1).Value = $"{ctrlWeek.Date} - {lblTotDate.Text}";
+            col = FormUren.FindColumn(worksheet, "Week", 4); worksheet.Cell(4, col + 1).Value = this.WeekNr;
+            col = FormUren.FindColumn(worksheet, "van", 5); worksheet.Cell(5, col + 1).Value = $"{this.FromDateString} - {this.ToDateString}";
             worksheet.Cell("D1").Value = lblCompany.Text;
         }
     }// class PanelLogo

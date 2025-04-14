@@ -56,8 +56,8 @@ namespace CustomControls
                 MinDate = CustomDateControl.MinDate,
                 MaxDate = CustomDateControl.MaxDate.AddDays(-1),
                 FirstDayOfWeek = Day.Monday,
-                ShowToday = false,
-                ShowTodayCircle = true,
+                ShowToday = false,          // de datum
+                ShowTodayCircle = false,
             };
 
             if (initialDate.HasValue)
@@ -105,7 +105,7 @@ namespace CustomControls
 
     public class CustomDateControl : UserControl
     {
-        public bool validateOK;
+        public bool isValidOrEmpty;
         public enum DateType { Full, MonthYear }
         public DateType Type { get; set; } = DateType.Full;
 
@@ -121,13 +121,25 @@ namespace CustomControls
             return new Size(baseSize.Width, PreferredHeight);
         }
 
-        public string Date
+        public string DateString
         {
             get => txtDate.Text;
             set
             {
                 txtDate.Text = value;
                 ValidateDate();
+            }
+        }
+
+        public DateTime? InputDate
+        {
+            get
+            {
+                return ParseDate(txtDate.Text, Type);
+            }
+            set
+            {
+                txtDate.Text = value.ToStringNL();
             }
         }
 
@@ -190,8 +202,8 @@ namespace CustomControls
 
         private void btnCalendar_Click(object sender, EventArgs e)
         {
-            DateTime initialDate;
-            if (!DateTime.TryParse(Date, out initialDate))
+            DateTime? initialDate = ParseDate(DateString, DateType.Full);
+            if (!initialDate.HasValue)
                 initialDate = DateTime.Now;
 
             using var dialog = new CalendarForm(initialDate)
@@ -204,11 +216,11 @@ namespace CustomControls
             // Stel de geselecteerde datum in de kalender in.
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                Date = dialog.SelectedDate.ToShortDateString();
+                DateString = dialog.SelectedDate.ToStringNL();
             }
         }
 
-        private DateTime? ParseDate(string dateString)
+        private DateTime? ParseDate(string dateString, DateType type)
         {
             if (string.IsNullOrWhiteSpace(dateString)) return null;
 
@@ -222,7 +234,7 @@ namespace CustomControls
             int day = 1, month = -1, year = -1;
 
             // Case 1: dd-mm-yy(yy)
-            if (dateParts.Length == 3 && Type == DateType.Full)
+            if (dateParts.Length == 3 && type == DateType.Full)
             {
                 if (!int.TryParse(dateParts[0], out day) || !int.TryParse(dateParts[1], out month) || !int.TryParse(dateParts[2], out year))
                 {
@@ -230,7 +242,7 @@ namespace CustomControls
                 }
             }
             // Case 2: mm-yy(yy)
-            else if (dateParts.Length == 2 && Type == DateType.MonthYear)
+            else if (dateParts.Length == 2 && type == DateType.MonthYear)
             {
                 if (!int.TryParse(dateParts[0], out month) || !int.TryParse(dateParts[1], out year))
                 {
@@ -259,32 +271,32 @@ namespace CustomControls
 
         private bool ValidateDate()
         {
-            validateOK = true;
+            isValidOrEmpty = true;
 
             if (string.IsNullOrWhiteSpace(txtDate.Text))
             {
-                txtDate.BackColor = SystemColors.Window; // Reset achtergrondkleur bij lege invoer
+                txtDate.Text = "";
+                txtDate.BackColor = SystemColors.Window;             // Reset achtergrondkleur bij lege invoer
                 OnDateChanged(new DateChangedEventArgs(null, true)); // Trigger event met null datum
-                return validateOK;
+                return isValidOrEmpty;
             }
 
-            DateTime? parsedDate = ParseDate(txtDate.Text);
+            DateTime? parsedDate = ParseDate(txtDate.Text, this.Type);
             if (parsedDate.HasValue)
             {
-                txtDate.Text = parsedDate.Value.ToShortDateString();
+                txtDate.Text = parsedDate.ToStringNL();
                 txtDate.BackColor = SystemColors.Window; // Reset achtergrondkleur bij geldige datum
-                validateOK = true;
             }
             else
             {
                 // MessageBox.Show("Ongeldige datum.", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 txtDate.BackColor = Color.LightCoral;
-                validateOK = false;
+                isValidOrEmpty = false;
             }
 
             // Trigger het DateChanged event met de nieuwe datum
-            OnDateChanged(new DateChangedEventArgs(parsedDate, validateOK));
-            return validateOK;
+            OnDateChanged(new DateChangedEventArgs(parsedDate, isValidOrEmpty));
+            return isValidOrEmpty;
         }
 
         private void txtDate_Leave(object sender, EventArgs e)
@@ -313,13 +325,13 @@ namespace CustomControls
         public class DateChangedEventArgs : EventArgs
         {
             public DateTime? SelectedDate { get; }
-            public bool validateOK { get; }   // false voor foute datum, true voor goede datum en whitespace/empty string
-            public bool DateOK => validateOK; // Alias voor validateOK
+            public bool isValidOrEmpty { get; }           // false voor foute datum, true voor goede datum en whitespace/empty string
+            public bool IsValidOrEmpty => isValidOrEmpty; // Alias voor isValidOrEmpty
 
-            public DateChangedEventArgs(DateTime? selectedDate, bool validateOK)
+            public DateChangedEventArgs(DateTime? selectedDate, bool isValidOrEmpty)
             {
                 SelectedDate = selectedDate;
-                this.validateOK = validateOK;
+                this.isValidOrEmpty = isValidOrEmpty;
             }
         }
 

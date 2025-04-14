@@ -14,7 +14,7 @@ namespace CustomControls
         public object EditingControlFormattedValue
         {
             get => GetCombinedValue();
-            set => _textBox.Text = "Blah"; //value?.ToString() ?? "";
+            set => _textBox.Text = "Blah"; //value?.ToString() ?? ""; //RR!!
         }
 
         public object GetEditingControlFormattedValue(DataGridViewDataErrorContexts context)

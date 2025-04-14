@@ -22,6 +22,22 @@ public interface IShortNameable
 }
 public static class MyExtensions
 {
+    /// <summary>
+    /// Converteert een DateTime naar een string in Nederlands formaat (dd/MM/yyyy).
+    /// </summary>
+    public static string ToStringNL(this DateTime date)
+    {
+        return date.ToString("dd/MM/yyyy");
+    }
+
+    /// <summary>
+    /// Converteert een nullable DateTime naar een string in Nederlands formaat (dd/MM/yyyy) of geeft een lege string terug bij null.
+    /// </summary>
+    public static string ToStringNL(this DateTime? date)
+    {
+        return date?.ToStringNL() ?? string.Empty;
+    }
+
     public static bool TryParseDoubleExt(this string value, out double result)
     {
         if (string.IsNullOrWhiteSpace(value))
