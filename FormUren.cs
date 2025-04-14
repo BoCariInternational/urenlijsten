@@ -155,7 +155,7 @@ namespace Urenlijsten_App
             {
                 Dock = DockStyle.Left,
                 Text = "Blah",
-                DataSource = new List<string> {"a", "b", "c" }
+                DataSource = new List<string> { "a", "b", "c" }
             };
             panelVerlof.Controls.Add(ncb);
 
@@ -227,7 +227,7 @@ namespace Urenlijsten_App
                 }
                 else if (gridValue is string stringValue)
                 {
-                    cell.Value = stringValue;
+                    cell.Value = stringValue.Trim();
                 }
                 else if (gridValue is DateTime dateTimeValue)
                 {
@@ -236,14 +236,14 @@ namespace Urenlijsten_App
                 else
                 {
                     // Als het een ander type is, kun je het eventueel als string opslaan
-                    cell.Value = gridValue.ToString();
+                    // cell.Value = gridValue.ToString();
                 }
             }
         }// Assign
 
         const int rowHeaderInTemplate = 8;
         const int maxRows = 10;
-       
+
 
         // ComputeTotal2
 
@@ -262,7 +262,7 @@ namespace Urenlijsten_App
         private void BtnSubmit_Click(object sender, EventArgs e)
         {
             // 1) Maak een kopie van het sjabloon
-            string templatePath = Path.Combine(Application.StartupPath, @"..\..\..\UrenlijstBLS.xlsx");
+            string templatePath = Path.Combine(Application.StartupPath, @"..\..\..\BoCariUrenlijstTemplate.xlsx");
             templatePath = Path.GetFullPath(templatePath);  // normalized path without \..\
             string destionationPath = Path.GetDirectoryName(templatePath);
             string destinationPath = Path.Combine(destionationPath, "result.xlsx");
@@ -283,9 +283,9 @@ namespace Urenlijsten_App
                 using (var workbook = new XLWorkbook(destinationPath))
                 {
                     var worksheet = workbook.Worksheets.First(); // Ga ervan uit dat de data in het eerste werkblad moet komen
-                     
-                    panelLogoNaam.CopyOnSubmit(worksheet);
-                    panelUren.CopyOnSubmit(worksheet);
+
+                    panelLogoNaam.OnSubmit(worksheet);
+                    panelUren.OnSubmit(worksheet);
 
                     // Save de kopie.xlsx
                     workbook.Save();

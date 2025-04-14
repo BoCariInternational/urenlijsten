@@ -1,16 +1,17 @@
 ﻿using System;
-using System.Windows.Forms;
-using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using Draw = System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CustomControls;
-using System.ComponentModel;
-using Newtonsoft.Json;
+using System.Windows.Forms;
+using System.Collections.Generic;
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
-using Draw = System.Drawing;
+//using DocumentFormat.OpenXml.Spreadsheet;
+using Newtonsoft.Json;
+using CustomControls;
 using Urenlijsten_App;
-using System.Diagnostics;
 
 
 // Vereiste interfaces
@@ -19,10 +20,68 @@ public interface IShortNameable
     string ToString();      // Lange naam voor checkboxes
     string ToStringShort(); // Korte naam voor textbox
 }
+public static class MyExtensions
+{
+    public static bool TryParseDoubleExt(this string value, out double result)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            result = 0; // Je kunt hier een andere default waarde kiezen als dat nodig is
+            return false;
+        }
+
+        return double.TryParse(
+            value.Replace(',', '.'),
+            NumberStyles.Float | NumberStyles.AllowThousands,
+            CultureInfo.InvariantCulture,
+            out result
+        );
+    }
+
+    //===
+
+    public static double? DoubleFromObj(this object obj)
+    {
+        // obj is vaak een object uit DataGridView cell
+        if (obj == null)
+        {
+            return null;
+        }
+
+        if (obj is double d)
+        {
+            return d;
+        }
+
+        if (obj is float f)
+        {
+            return (double)f;
+        }
+
+        if (obj is int i)
+        {
+            return (double)i;
+        }
+
+        if (obj is decimal dec)
+        {
+            return (double)dec;
+        }
+
+        if (obj is string s)
+        {
+            if (s.Replace(',', '.').TryParseDoubleExt(out double result))
+            {
+                return result;
+            }
+        }
+
+        return null; // Kon niet naar double converteren
+    }
+}
 
 namespace CustomControls
 {
-
     public class PanelUren : Panel
     {
         public DataGridView dv;
@@ -158,6 +217,7 @@ namespace CustomControls
             dv.EditingControlShowing += dv_EditingControlShowing;
             dv.CellValidating += dv_CellValidating;
             dv.CellEndEdit += dv_CellEndEdit;
+            dv.KeyDown += dv_KeyDown;
 
             int row, col;
             bool b = true;
@@ -226,7 +286,7 @@ namespace CustomControls
                 dv.Columns[col].Resizable = DataGridViewTriState.False;
             }
             dv.Columns[colKm].Width = 75;
-            dv.Columns["Projectnummer"].MinimumWidth = 120;
+            dv.Columns["Urencode"].MinimumWidth = 120;
 
             dv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
@@ -241,6 +301,10 @@ namespace CustomControls
             dv.DefaultCellStyle.SelectionBackColor = Draw.Color.LightSkyBlue;
             dv.MultiSelect = false;
             dv.SelectionMode = DataGridViewSelectionMode.CellSelect;  // Optioneel: zet de selectie op celniveau
+
+            // Hide last two rows before final total
+            dv.Rows[rowTotal2 - 2].Visible = false;
+            dv.Rows[rowTotal2 - 1].Visible = false;
         }
 
         private void AddColumns()
@@ -249,52 +313,76 @@ namespace CustomControls
             dv.Columns[0].Visible = false;
 
             // Klantnaam
-            dv.Columns.Add(new DataGridViewTextBoxColumn { Name = "Klantnaam", HeaderText = "Klantnaam" });
+            dv.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Klantnaam",
+                HeaderText = "Klantnaam"
+            });
+
+            dv.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Projectnummer",
+                HeaderText = "Projectnummer"
+            });
 
             // Projecttype (CheckedComboBox filter)
-            /*
-            var columnProjectType = new DataGridViewColumn
-            {
-                Name = "Projecttype",
-                HeaderText = "Projecttype",
-                CellTemplate = new DataGridViewCheckedComboBoxCell()
-            };
-            */
+
             var columnProjectType = new DataGridViewCheckedComboBoxColumn
             {
                 Name = "Projecttype",
-                HeaderText = "Projecttype"
+                HeaderText = "Projecttype",
+                Visible = false, // RR!! Temporarily hide the column
             };
             dv.Columns.Add(columnProjectType);
 
-            // Projectnummer (FilteredComboBox)
+            // Urencode (FilteredComboBox)
             var columnProjectNumber = new DataGridViewColumn
             {
-                Name = "Projectnummer",
-                HeaderText = "Projectnummer",
+                Name = "Urencode",
+                HeaderText = "Urencode",
                 CellTemplate = new DataGridViewFilteredComboBoxCell()
             };
             dv.Columns.Add(columnProjectNumber);
 
+            dv.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Omschrijving",
+                HeaderText = "Omschrijving",
+                ReadOnly = true
+            });
+
             // km dienstreis
             colKm = dv.ColumnCount;
-            dv.Columns.Add(new DataGridViewTextBoxColumn { Name = "kmDienstreis", HeaderText = "km dienstreis" });
+            dv.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "kmDienstreis",
+                HeaderText = "km dienstreis"
+            });
 
             // Dag columns
             colMa = dv.ColumnCount;
             string[] days = { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
             foreach (var day in days)
             {
-                dv.Columns.Add(new DataGridViewTextBoxColumn { Name = day, HeaderText = day });
+                dv.Columns.Add(new DataGridViewTextBoxColumn
+                {
+                    Name = day,
+                    HeaderText = day
+                });
             }
 
             // Totaal
             colTotal = dv.ColumnCount;
-            dv.Columns.Add(new DataGridViewTextBoxColumn { Name = "Totaal", HeaderText = "Totaal", ReadOnly = true });
+            dv.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "Totaal",
+                HeaderText = "Totaal",
+                ReadOnly = true
+            });
         }
 
         // copy/submit methods
-        private void CopyColumnProjectUren(string headerText, IXLWorksheet worksheet, DataGridView dv)
+        private void ColumnToExcel(string headerText, IXLWorksheet worksheet, DataGridView dv, bool numeric = false)
         {
             // Header met Klantnaam, projectcode, ma-zo, etc.
             // kopieer kolom met headerText:
@@ -304,44 +392,48 @@ namespace CustomControls
             {
                 for (int row = 0; row < rowTotal1; ++row)
                 {
-                    FormUren.Assign(worksheet.Cell(row + rowHeaderInTemplate + 1, colExcel), dv.Rows[row].Cells[colDataGrid].Value);
+                    object cellValue = dv.Rows[row].Cells[colDataGrid].Value;
+                    double? d = cellValue.DoubleFromObj();
+                    if (d.HasValue)
+                    {
+                        FormUren.Assign(worksheet.Cell(row + rowHeaderInTemplate + 1, colExcel), d.Value);
+                    }
+                    else
+                    {
+                        FormUren.Assign(worksheet.Cell(row + rowHeaderInTemplate + 1, colExcel), d);
+
+                    }
                 }
             }
         }
 
-        public void CopyOnSubmit(IXLWorksheet worksheet)
+        public void OnSubmit(IXLWorksheet worksheet)
         {
-            var dv = this.dv;
+            //RR!! uren, omschrijving
+            ColumnToExcel("Klantnaam", worksheet, dv);
+            ColumnToExcel("Projectnummer", worksheet, dv);
+            ColumnToExcel("Urencode", worksheet, dv);
+            ColumnToExcel("Omschrijving", worksheet, dv);
+            ColumnToExcel("km", worksheet, dv, true);
 
-            //const int rowTotal1 = 10;
-
-            CopyColumnProjectUren("Klantnaam", worksheet, dv);
-            CopyColumnProjectUren("km", worksheet, dv);
             var dagen = new[] { "Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo" };
             foreach (var dag in dagen)
             {
-                CopyColumnProjectUren(dag, worksheet, dv);
+                ColumnToExcel(dag, worksheet, dv, true);
             }
-
         }
 
-
-        // ComputeTotal1 (part of horizontal row of totals) for column with headerText
-        public void ComputeTotal1(string headerText, IXLWorksheet worksheet)
+        private void ComputeTotals(int row, int col)
         {
-            int colDataGrid = dv.GetColumnIndexByHeader(headerText);
-            if (colDataGrid != -1)
+            if (col == colKm)
             {
-                double sum = 0;
-                for (int row = 0; row < rowTotal1; ++row)
-                {
-                    var value = dv.Rows[row].Cells[colDataGrid].Value.ToString();
-                    if (double.TryParse(value, out double number))
-                    {
-                        sum += number;
-                    }
-                }
-                //dv.Rows[rowTotal1].Cells[colDataGrid].Value = sum; // row met totalen (horizontaal) 
+                ComputeTotalColumn(col);
+            }
+            else if (col >= colMa)
+            {
+                ComputeTotalRow(row);
+                ComputeTotalColumn(col);
+                ComputeTotalColumn(colTotal);
             }
         }
 
@@ -406,7 +498,6 @@ namespace CustomControls
                 dv.Rows[row].Cells[colTotal].Value = sum;
         }
 
-
         private void KmTextBox_KeyPress(object sender, KeyPressEventArgs ev)
         {
             if (!char.IsControl(ev.KeyChar) && !char.IsDigit(ev.KeyChar))
@@ -451,6 +542,23 @@ namespace CustomControls
         }
 
         #region dv events
+
+        private void dv_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Controleer of de Delete-toets is ingedrukt en of er een cel is geselecteerd
+            if (e.KeyCode == Keys.Delete && dv.CurrentCell != null)
+            {
+                // Haal de geselecteerde cel op
+                DataGridViewCell selectedCell = dv.CurrentCell;
+
+                // Voer hier de actie uit die je wilt uitvoeren bij het drukken op Delete
+                // wanneer een cel is geselecteerd.
+
+                // Voorbeeld 1: De waarde van de cel leegmaken
+                selectedCell.Value = "";
+                ComputeTotals(selectedCell.RowIndex, selectedCell.ColumnIndex);
+            }
+        }
 
         private void ShowValidationError(string message, int rowIndex, string columnName)
         {
@@ -550,7 +658,7 @@ namespace CustomControls
                     }
                 }
             }
-            else if (columnName == "Projectnummer" && e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
+            else if (columnName == "Urencode" && e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
             {
                 var editingControl = dv.EditingControl as CheckedComboBox;
 
@@ -657,17 +765,18 @@ namespace CustomControls
                 case "Vr":
                 case "Za":
                 case "Zo":
-                    if (!string.IsNullOrEmpty(value))
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        cell.Value = "";
+                        ComputeTotals(e.RowIndex, e.ColumnIndex);
+                    }
+                    else if (!string.IsNullOrEmpty(value))
                     {
                         string valueToParse = value.EndsWith(",") ? value + "5" : value;
-                        valueToParse = valueToParse.Replace(',', '.');
-
-                        if (double.TryParse(valueToParse, out double hours))
+                        if (valueToParse.TryParseDoubleExt(out double hours))
                         {
                             cell.Value = hours;
-                            ComputeTotalRow(e.RowIndex);
-                            ComputeTotalColumn(e.ColumnIndex);
-                            ComputeTotalColumn(colTotal);
+                            ComputeTotals(e.RowIndex, e.ColumnIndex);
                         }
                         else
                         {
@@ -677,7 +786,7 @@ namespace CustomControls
                     }
                     break;
 
-                case "km Dienstreis":
+                case "kmDienstreis":
                     ComputeTotalColumn(e.ColumnIndex);
                     break;
             }

@@ -157,7 +157,7 @@ namespace Urenlijsten_App
                 Padding = new Padding(5),
                 Height = 80,
                 //Width = 250,
-                ClientSize = new Size(250,80)
+                ClientSize = new Size(250, 80)
             };
 
             rdoLogistics = new RadioButton
@@ -387,7 +387,7 @@ namespace Urenlijsten_App
             });
         }
 
-        public void CopyOnSubmit(IXLWorksheet worksheet)
+        public void OnSubmit(IXLWorksheet worksheet)
         {
             int col;
             col = FormUren.FindColumn(worksheet, "Naam", 2); worksheet.Cell(2, col + 1).Value = txtName.Text;

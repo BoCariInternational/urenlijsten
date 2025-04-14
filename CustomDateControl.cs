@@ -264,6 +264,7 @@ namespace CustomControls
             if (string.IsNullOrWhiteSpace(txtDate.Text))
             {
                 txtDate.BackColor = SystemColors.Window; // Reset achtergrondkleur bij lege invoer
+                OnDateChanged(new DateChangedEventArgs(null, true)); // Trigger event met null datum
                 return validateOK;
             }
 
@@ -272,6 +273,7 @@ namespace CustomControls
             {
                 txtDate.Text = parsedDate.Value.ToShortDateString();
                 txtDate.BackColor = SystemColors.Window; // Reset achtergrondkleur bij geldige datum
+                validateOK = true;
             }
             else
             {
@@ -280,6 +282,8 @@ namespace CustomControls
                 validateOK = false;
             }
 
+            // Trigger het DateChanged event met de nieuwe datum
+            OnDateChanged(new DateChangedEventArgs(parsedDate, validateOK));
             return validateOK;
         }
 
@@ -290,7 +294,7 @@ namespace CustomControls
 
         private void txtDate_KeyPress(object sender, KeyPressEventArgs e)
         {
-		//RR!
+            //RR!
             // Sta cijfers, spatie, streepje en slash toe.
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) &&
                 (e.KeyChar != ' ') && (e.KeyChar != '-') && (e.KeyChar != '/'))
@@ -300,9 +304,30 @@ namespace CustomControls
             // Als Enter is ingedrukt, roep Validate aan en set handled = true
             else if (e.KeyChar == (char)Keys.Enter)
             {
-                ValidateDate();        // Roep de Validate functie aan
+                ValidateDate();    // Roep de Validate functie aan
                 e.Handled = false; // Doe de standaard actie van de Enter toets
             }
         }
+
+        // Custom event
+        public class DateChangedEventArgs : EventArgs
+        {
+            public DateTime? SelectedDate { get; }
+            public bool validateOK { get; }   // false voor foute datum, true voor goede datum en whitespace/empty string
+            public bool DateOK => validateOK; // Alias voor validateOK
+
+            public DateChangedEventArgs(DateTime? selectedDate, bool validateOK)
+            {
+                SelectedDate = selectedDate;
+                this.validateOK = validateOK;
+            }
+        }
+
+        public event EventHandler<DateChangedEventArgs> DateChanged;
+        protected virtual void OnDateChanged(DateChangedEventArgs e)
+        {
+            DateChanged?.Invoke(this, e);
+        }
+
     }// class CustomDateControl
 }// namespace CustomControls.
