@@ -7,7 +7,7 @@ using System.Timers;
 
 namespace CustomControls
 {
-    public class FilteredComboBox<T> : ComboBox
+    public partial class FilteredComboBox<T> : ComboBox, IDataGridViewEditingControl
     {
         private const int FILTER_DELAY_MS = 500; // Configurable delay
         private List<T> _sourceList;
@@ -84,7 +84,8 @@ namespace CustomControls
             {
                 case Keys.Up:
                 case Keys.Down:
-                    if (!this.DroppedDown) this.DroppedDown = true;
+                    this.DroppedDown = !this.DroppedDown; // Toggle dropdown on arrow keys
+                    e.Handled = true;
                     break;
 
                 case Keys.Tab:
@@ -92,9 +93,33 @@ namespace CustomControls
                     if (this.Items.Count > 0 && !string.IsNullOrEmpty(this.Text))
                     {
                         this.SelectedIndex = 0; // Auto-select top item
-                        e.Handled = true; // Prevent further processing
+
+                        // Markeer dat er wijzigingen zijn
+                        // Anders slaat de grid cell de wijziging niet op.
+                        this.EditingControlValueChanged = true;
+
+                        // Forceer validatie van de cel (edit widget)
+                        this.EditingControlDataGridView.EndEdit();            // Retourneert false als validatie faalt
+                        // Start deze sequentie:
+                        //1. EditingControl.GetEditingControlFormattedValue() // Haal de waarde op
+                        //2. DataGridView.CellValidating                      // Validatie-event
+                        //→ Als e.Cancel = true: stopt het proces
+                        //3. DataGridView.CellValidated                       // Na succesvolle validatie
+                        //4. DataGridView.CellEndEdit                         // Finalisatie
+                        e.Handled = true;
                     }
                     break;
+                case Keys.Escape:
+                    this.EditingControlValueChanged = true;
+                    this.EditingControlDataGridView.EndEdit();  // De wijziging wordt NIET opgeslagen
+                    e.Handled = false;                          // Laat de escape door om de dropdown te sluiten
+                    break;
+            }
+
+            // Zonder de base.OnKeyDown(e) roep je de standaardverwerking van ComboBox niet aan
+            if (!e.Handled)
+            {
+                base.OnKeyDown(e);
             }
         }
 
@@ -103,7 +128,7 @@ namespace CustomControls
             _filterTimer.Stop();
         }
 
-        private void ApplyFilter(string filterText)
+        public void ApplyFilter(string filterText)
         {
             if (_sourceList == null || _isFilteringInProgress) return;
 
@@ -116,7 +141,7 @@ namespace CustomControls
                 _lastFilterText = filterText;
 
                 // Build regex pattern with .+ between terms (requires consecutive chars)
-                string regexPattern = string.IsNullOrEmpty(filterText)
+                string regexPattern = string.IsNullOrWhiteSpace(filterText)
                     ? ".*"
                     : ".*" + string.Join(".+", filterText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)) + ".*";
 
@@ -135,11 +160,17 @@ namespace CustomControls
                     if (filteredItems.Count > 0)
                     {
                         this.DataSource = filteredItems;
-                        this.DisplayMember = "";
+                        this.DisplayMember = ""; // Set to empty string to use ToString() for display
+                        this.ValueMember = "";   // Set to empty string to use ToString() for value
+                        this.SelectedIndex = -1; // Reset selection
+                        this.Text = filterText;  // Set the text to the filter text
 
                         if (filteredItems.Count == 1)
                         {
-                            this.SelectedIndex = 0;
+                            var e = new KeyEventArgs(Keys.Enter);
+                            this.OnKeyDown(e);
+                            // Dit triggert alleen mijn eigen override van OnKeyDown, 
+                            // niet eventuele event handlers van buitenaf of andere events zoals KeyPress
                         }
                     }
 
