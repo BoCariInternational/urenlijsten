@@ -343,20 +343,20 @@ namespace CustomControls
 
             // Projecttype (CheckedComboBox filter)
 
-            var columnProjectType = new DataGridViewCheckedComboBoxColumn
-            {
-                Name = "Projecttype",
-                HeaderText = "Projecttype",
-                Visible = false, // RR!! Temporarily hide the column
-            };
-            dv.Columns.Add(columnProjectType);
+            //var columnProjectType = new DataGridViewCheckedComboBoxColumn
+            //{
+            //    Name = "Projecttype",
+            //    HeaderText = "Projecttype",
+            //    Visible = false, // RR!! Temporarily hide the column
+            //};
+            //dv.Columns.Add(columnProjectType);
 
             // Urencode (FilteredComboBox)
             var columnProjectNumber = new DataGridViewColumn
             {
                 Name = "Urencode",
                 HeaderText = "Urencode",
-                CellTemplate = new DataGridViewFilteredComboBoxCell()
+                CellTemplate = new FilteredComboBoxCell<ProjectItem>()
             };
             dv.Columns.Add(columnProjectNumber);
 
@@ -756,7 +756,7 @@ namespace CustomControls
                         {
                             return; // Verlaat de event handler als het dropdown panel nog zichtbaar is
                         }
-                        cell.Value = ((DataGridViewCheckedComboBoxCell)cell).GetCombinedValue(combo1);
+                        //RR!!cell.Value = ((DataGridViewCheckedComboBoxCell)cell).GetCombinedValue(combo1);
                     }
                     else if (editControl is CheckedComboBox combo2)
                     {

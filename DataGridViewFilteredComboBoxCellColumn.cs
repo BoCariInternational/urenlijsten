@@ -1,43 +1,22 @@
 using System;
 using System.Collections.Generic;
-using System.Linq; // Nodig voor FirstOrDefault
 using System.Windows.Forms;
 using System.ComponentModel; // Voor TypeConverter
 
-namespace CustomControls // Zorg dat namespace overeenkomt
+namespace CustomControls
 {
-    // --- DE CUSTOM CELL ---
-    public class FilteredComboBoxCell : DataGridViewComboBoxCell // Afleiden van ComboBoxCell is vaak handig
+    public interface IDataGridViewUserControl
     {
-        object _theValue = null; // De waarde die we in de cel willen opslaan
-        FilteredComboBoxColumn _dataGridViewColumn; // De kolom waartoe deze cel behoort. Deze heeft een SourceList
-        public override void InitializeEditingControl(int rowIndex, object initialFormattedValue, DataGridViewCellStyle dataGridViewCellStyle)
-        {
-            // Basis implementatie aanroepen
-            base.InitializeEditingControl(rowIndex, initialFormattedValue, dataGridViewCellStyle);
+        public void InitControl(object value);
+        public string GetFormattedValue(object value);
+    };
 
-            // Verkrijg een referentie naar de aangemaakte editing control
-            if (this.DataGridView.EditingControl is FilteredComboBox<T> editingControl)
-            {
-                // --- HIER WORDT DE TEXT GEÏNITIALISEERD ---
-                // Stel de Text property van de ComboBox in op basis van de waarde
-                // die al in de DataGridView-cel staat.
-                // 'initialFormattedValue' bevat de waarde zoals die in de cel wordt weergegeven.
-                editingControl.Text = initialFormattedValue?.ToString() ?? string.Empty;
-                // ------------------------------------------
+    // --- DE CUSTOM CELL ---
 
-                // --- Overige Initialisatie (zoals SourceList) ---
-                // Haal de kolom op om de SourceList in te stellen
-                if (this.OwningColumn is FilteredComboBoxColumn<T> column)
-                {
-                    editingControl.SourceList // FilteredComboBox property
-                        = column.SourceList;
-                }
 
-                editingControl.ApplyFilter(initialFormattedValue.ToString());
-                editingControl.DropDownStyle = ComboBoxStyle.DropDown;
-            }
-        }
+    public class FilteredComboBoxCell<TItem> : DataGridViewComboBoxCell
+    {
+        private object _cellValue;
 
         protected override object GetFormattedValue(
             object value,
@@ -47,56 +26,50 @@ namespace CustomControls // Zorg dat namespace overeenkomt
             TypeConverter formattedValueTypeConverter,
             DataGridViewDataErrorContexts context)
         {
-            _theValue = null;
-            if (this.DataGridView.EditingControl is FilteredComboBox<T> editingControl)
+            // _cellValue = value;
+            // return value?.ToString() ?? string.Empty; //control.GetFormattedValue(value);
+
+
+            if (this.DataGridView.EditingControl is FilteredComboBox<TItem> control)
             {
-                _theValue = value; // Bewaar de waarde voor later gebruik
+                _cellValue = value; // Bewaar de waarde voor later gebruik
+                return control.GetFormattedValue(value);
             }
             else
             {
-                _theValue = null;
+                _cellValue = null;
+                return string.Empty;
             }
+        }
 
-            string s = value?.ToString() ?? string.Empty;  //RR! debug
-            return value?.ToString() ?? string.Empty;
+        public override void InitializeEditingControl(
+            int rowIndex,
+            object initialFormattedValue,
+            DataGridViewCellStyle cellStyle)
+        {
+            base.InitializeEditingControl(rowIndex, initialFormattedValue, cellStyle);
+
+            if (DataGridView.EditingControl is FilteredComboBox<TItem> control)
+            {
+                control.InitControl(_cellValue);
+            }
         }
 
         // Override EditType om aan te geven welke control we gebruiken
-        public override Type EditType => typeof(FilteredComboBox<T>);
+        public override Type EditType => typeof(FilteredComboBox<TItem>);
 
         // Override ValueType om het type van de onderliggende celwaarde aan te geven
-        // Als je T opslaat, gebruik typeof(T). Als je strings opslaat, typeof(string).
-        public override Type ValueType => typeof(T); // Aangepast aan "gedraagt zich als textbox"
+        public override Type ValueType => typeof(object);
 
-        // Override FormattedValueType om aan te geven wat er getoond wordt
-        // Override GetFormattedValue om de waarde te formatteren
         public override Type FormattedValueType => typeof(string);
 
         // Vergeet niet Clone te implementeren als je custom properties hebt
         public override object Clone()
         {
-            FilteredComboBoxCell<T> cell = (FilteredComboBoxCell<T>)base.Clone();
+            var clone = (FilteredComboBoxCell<TItem>)base.Clone();
             // Kopieer hier eventuele custom cell properties
-            return cell;
+            clone._cellValue = _cellValue;
+            return clone;
         }
     }
-
-    // --- DE CUSTOM COLUMN (in hetzelfde bestand) ---
-    public class FilteredComboBoxColumn<T> : DataGridViewColumn
-    {
-        private List<T> _sourceList; // De lijst met items die de edit-combobox moet gebruiken
-        public List<T> SourceList
-        {
-            get => _sourceList;
-            set
-            {
-                _sourceList = value;
-            }
-        }
-
-        public FilteredComboBoxColumn<T>()
-        {
-            this.CellTemplate = new FilteredComboBoxCell(this);
-    }
-}
 }

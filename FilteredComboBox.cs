@@ -7,10 +7,10 @@ using System.Timers;
 
 namespace CustomControls
 {
-    public partial class FilteredComboBox<T> : ComboBox, IDataGridViewEditingControl
+    public partial class FilteredComboBox<TItem>: DataGridViewComboBoxEditingControl<FilteredComboBox<TItem> >, IDataGridViewUserControl
     {
         private const int FILTER_DELAY_MS = 500; // Configurable delay
-        private List<T> _sourceList;
+        private List<TItem> _sourceList;
         private System.Timers.Timer _filterTimer;
         private string _lastFilterText = string.Empty;
         private bool _isFilteringInProgress = false;
@@ -30,8 +30,19 @@ namespace CustomControls
             this.LostFocus += OnLostFocus;
         }
 
+
+        public void InitControl(object value)
+        {
+            ;
+        }
+        public string GetFormattedValue(object value)
+        {
+            return "Blah";
+        }
+
         // Property for the source list
-        public List<T> SourceList
+        
+        public List<TItem> SourceList
         {
             get => _sourceList;
             set
@@ -40,9 +51,10 @@ namespace CustomControls
                 ApplyFilter(string.Empty); // Initialize with full list
             }
         }
+        
 
         // Gets the currently selected item of type T
-        public new T SelectedItem => (T)base.SelectedItem;
+        // public new T SelectedItem => (T)base.SelectedItem;
 
         private void OnTextChanged(object sender, EventArgs e)
         {
