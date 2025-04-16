@@ -52,7 +52,7 @@ namespace CustomControls
         }
 
         // Override EditType om aan te geven welke control we gebruiken
-        public override Type EditType => typeof(FilteredComboBox<TItem>);
+        public override Type EditType => typeof(FilteredComboBox<TItem>); //RR!
 
         // Override ValueType om het type van de onderliggende celwaarde aan te geven
         public override Type ValueType => typeof(object);

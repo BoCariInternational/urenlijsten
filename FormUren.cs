@@ -80,7 +80,7 @@ namespace Urenlijsten_App
             Initialize(); // Jouw eigen methode
 
             var shortableProjectTypes = panelUren.projectDataJson.projectTypes.ConvertAll(type => new PanelUren.ShortableProjectType { TypeName = type });
-            cb.SetDataSource(shortableProjectTypes);
+            //RR!cb.SetDataSource(shortableProjectTypes);
         }
 
         private void Initialize()

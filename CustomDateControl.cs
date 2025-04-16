@@ -342,4 +342,4 @@ namespace CustomControls
         }
 
     }// class CustomDateControl
-}// namespace CustomControls.
+}// namespace Urenlijsten_App.

@@ -22,9 +22,10 @@ namespace CustomControls
 
         public void ApplyCellStyleToEditingControl(DataGridViewCellStyle dataGridViewCellStyle)
         {
-            Font = dataGridViewCellStyle.Font;
-            ForeColor = dataGridViewCellStyle.ForeColor;
-            BackColor = dataGridViewCellStyle.BackColor;
+            // Stel eerst de eigenschappen van de host control in
+            this.Font = dataGridViewCellStyle.Font;
+            this.ForeColor = dataGridViewCellStyle.ForeColor;
+            this.BackColor = SystemColors.Window; // Standaard Windows witte achtergrond
         }
 
         public int EditingControlRowIndex

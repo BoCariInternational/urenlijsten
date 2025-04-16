@@ -43,7 +43,7 @@ namespace CustomControls
         public object EditingControlFormattedValue
         {
             get => this.Text;
-            set => this.Text = value?.ToString() ?? string.Empty;
+            set => this.Text = value?.ToString() ?? string.Empty; //RR!!
         }
 
         public object GetEditingControlFormattedValue(DataGridViewDataErrorContexts context)
@@ -85,6 +85,14 @@ namespace CustomControls
         public void PrepareEditingControlForEdit(bool selectAll)
         {
             // Standard implementation (can be overridden)
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (!e.Handled)
+            {
+                base.OnKeyDown(e);  // Let ComboBox handle it
+            }
         }
     }
 }

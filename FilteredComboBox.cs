@@ -34,25 +34,14 @@ namespace CustomControls
 
         public void InitControl(object value)
         {
-
-            this.DataSource = _projectItems;
+            DataSource = _projectItems;
             ApplyFilter(string.Empty);
+            this.DisplayMember = "ToString";
+            this.ValueMember = "GetItem";
         }
         public string GetFormattedValue(object value)
         {
             return value == null ? string.Empty : value.ToString(); // Return the formatted value as a string
-        }
-
-        // Property for the source list
-
-        public List<TItem> SourceList
-        {
-            get => _sourceList;
-            set
-            {
-                _sourceList = value;
-                ApplyFilter(string.Empty); // Initialize with full list  //RR!! value uit grid
-            }
         }
 
         // Gets the currently selected item of type T
@@ -92,7 +81,7 @@ namespace CustomControls
             }
         }
 
-        private void OnKeyDown(object sender, KeyEventArgs e)
+        private void OnKeyDown(object sender, KeyEventArgs e) // Event handler
         {
             switch (e.KeyCode)
             {
@@ -110,7 +99,7 @@ namespace CustomControls
 
                         // Markeer dat er wijzigingen zijn
                         // Anders slaat de grid cell de wijziging niet op.
-                        this.EditingControlValueChanged = true;
+                        this.EditingControlValueChanged = true;               // RR!! Mind what Gemini said.
 
                         // Forceer validatie van de cel (edit widget)
                         this.EditingControlDataGridView.EndEdit();            // Retourneert false als validatie faalt
@@ -124,13 +113,18 @@ namespace CustomControls
                     }
                     break;
                 case Keys.Escape:
-                    this.EditingControlValueChanged = true;
-                    this.EditingControlDataGridView.EndEdit();  // De wijziging wordt NIET opgeslagen
-                    e.Handled = false;                          // Laat de escape door om de dropdown te sluiten
+                    this.EditingControlValueChanged = false;
+
+                    //this.EditingControlDataGridView.BeginInvoke(new Action(() => this.EditingControlDataGridView.EndEdit()));
+                    //this.EditingControlDataGridView.EndEdit();  // De wijziging wordt NIET opgeslagen
+                    e.Handled = false;                            // Laat de escape door om de dropdown te sluiten
                     break;
             }
 
             // Zonder de base.OnKeyDown(e) roep je de standaardverwerking van ComboBox niet aan
+            // Echter: we gebruiken nu CRTP en onze eigen base class zit tussen deze en Combobox in.
+            // Het equivalent van ComboBox::OnKeyDown(e); is niet mogelijk in C#
+            // Dus DataGridViewComboBoxEditingControl<FilteredComboBox<TItem> sluist het door naar ComboBox.
             if (!e.Handled)
             {
                 base.OnKeyDown(e);
@@ -144,7 +138,7 @@ namespace CustomControls
 
         public void ApplyFilter(string filterText)
         {
-            if (_sourceList == null || _isFilteringInProgress) return; //_sourelist is overbodig, gebruik _projectitems
+            if (_projectItems == null || _isFilteringInProgress) return; //_sourelist is overbodig, gebruik _projectitems
 
             // Don't re-filter if the text hasn't changed
             if (filterText == _lastFilterText) return;
@@ -161,7 +155,7 @@ namespace CustomControls
 
                 var regex = new Regex(regexPattern, RegexOptions.IgnoreCase);
 
-                var filteredItems = _sourceList
+                var filteredItems = _projectItems
                     .Where(item => regex.IsMatch(item.ToString()))
                     .ToList();
 
@@ -174,8 +168,6 @@ namespace CustomControls
                     if (filteredItems.Count > 0)
                     {
                         this.DataSource = filteredItems;
-                        this.DisplayMember = ""; // Set to empty string to use ToString() for display
-                        this.ValueMember = "";   // Set to empty string to use ToString() for value
                         this.SelectedIndex = -1; // Reset selection
                         this.Text = filterText;  // Set the text to the filter text
 
@@ -215,4 +207,4 @@ namespace CustomControls
             base.Dispose(disposing);
         }
     }
-}// namespace CustomControls
+}// namespace Urenlijsten_App

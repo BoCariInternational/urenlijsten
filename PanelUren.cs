@@ -11,7 +11,6 @@ using ClosedXML.Excel;
 //using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
 using CustomControls;
-using Urenlijsten_App;
 
 
 // Vereiste interfaces
@@ -96,17 +95,17 @@ public static class MyExtensions
     }
 }
 
-namespace CustomControls
+namespace Urenlijsten_App
 {
     public class PanelUren : Panel
     {
         public DataGridView dv;
-        private DataGridViewCheckedComboBoxColumn columnProjectType = null; //RR!
+        //private DataGridViewCheckedComboBoxColumn columnProjectType = null; //RR!
         // In dv:
         private int colMa;
         private int colTotal;
         private int colKm;
-        private const int rowTotal1 = 10;
+        public const int rowTotal1 = 10;
         private const int rowSpacer = rowTotal1 + 1;
         private const int rowTotal2 = 20;
 
@@ -130,10 +129,20 @@ namespace CustomControls
             [JsonProperty("Description")]
             public string description { get; set; }
 
-            public string ToString() => $"{projectCode} - {description}";
+            //public string ToString() => $"{projectCode} - {description}";
+            public string ToString()
+            {
+                return $"{projectCode} - {description}";
+            }
+
             public string ToStringShort()
             {
                 return $"{projectCode}";
+            }
+
+            public ProjectItem GetItem()
+            {
+                return this;
             }
         }
 
@@ -358,11 +367,11 @@ namespace CustomControls
             //dv.Columns.Add(columnProjectType);
 
             // Urencode (FilteredComboBox)
-            var columnProjectNumber = new DataGridViewColumn
+            var columnProjectNumber = new ColumnUrenCode
             {
                 Name = "Urencode",
                 HeaderText = "Urencode",
-                CellTemplate = new FilteredComboBoxCell<ProjectItem>(),
+                //RR! CellTemplate = new FilteredComboBoxCell<ProjectItem>(),
             };
             dv.Columns.Add(columnProjectNumber);
 
@@ -665,7 +674,7 @@ namespace CustomControls
 
             if (columnName == "Projecttype" && e.Control is CheckedComboBox comboProjectType)
             {
-                comboProjectType.SetDataSource(shortableProjectTypes);
+                //RR!! comboProjectType.SetDataSource(shortableProjectTypes);
                 var cellValue = dv.Rows[dv.CurrentCell.RowIndex].Cells[dv.CurrentCell.ColumnIndex].Value; //RR! Hack
                 if (cellValue is string combinedValue && !string.IsNullOrEmpty(combinedValue))
                 {
@@ -683,6 +692,8 @@ namespace CustomControls
             else if (columnName == "Urencode" && e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
             {
                 ; //DataSource = null //RR!!
+                comboProjectCode.DisplayMember = "ToString"; //RR!!!
+                comboProjectCode.ValueMember = "ProjectCode";
             }
 
             if ((columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||
@@ -796,4 +807,4 @@ namespace CustomControls
         }
         #endregion dv events
     }
-}// namespace CustomControls
+}// namespace Urenlijsten_App

@@ -56,6 +56,14 @@ namespace CustomControls
                 _textBox.SelectAll();
         }
 
+        protected override void OnTextChanged(EventArgs e)
+        {
+            base.OnTextChanged(e);
+            // Notify the DataGridView that the value has changed
+            valueChanged = true;
+            dataGridView.NotifyCurrentCellDirty(true);
+        }
+
         public bool EditingControlWantsInputKey(Keys keyData, bool dataGridViewWantsInputKey)
         {
             switch (keyData & Keys.KeyCode)

@@ -10,7 +10,13 @@
     <Compile Update="CustomDateControl.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="DataGridViewComboBoxEditingControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="FilteredComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="FilteredComboBox.IDataGridViewEditingControl.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Update="PanelLogo.cs">

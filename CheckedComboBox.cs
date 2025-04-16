@@ -542,4 +542,4 @@ namespace CustomControls
             }
         }
     }// class CheckedComboBox
-}// namespace CustomControls
+}// namespace Urenlijsten_App
