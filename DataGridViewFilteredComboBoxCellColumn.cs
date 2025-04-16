@@ -26,11 +26,7 @@ namespace CustomControls
             TypeConverter formattedValueTypeConverter,
             DataGridViewDataErrorContexts context)
         {
-            // _cellValue = value;
-            // return value?.ToString() ?? string.Empty; //control.GetFormattedValue(value);
-
-
-            if (this.DataGridView.EditingControl is FilteredComboBox<TItem> control)
+            if (value != null && this.DataGridView.EditingControl is FilteredComboBox<TItem> control)
             {
                 _cellValue = value; // Bewaar de waarde voor later gebruik
                 return control.GetFormattedValue(value);

@@ -49,8 +49,8 @@ namespace Urenlijsten_App
                 };
                 ctrlWeek.InputDate = _fromDate;         // Monday
 
-                _toDate = _fromDate.AddDays(4);
-                lblTotDate.Text = _toDate.ToStringNL(); // Friday
+                _toDate = _fromDate.AddDays(6);
+                lblTotDate.Text = _toDate.ToStringNL(); // Sunday
 
                 // ISO 8601
                 // Eerste dag van de week: maandag
@@ -262,7 +262,7 @@ namespace Urenlijsten_App
             // Row 2
             lblVan = new Label
             {
-                Text = "van",
+                Text = "van (Ma)",
                 TextAlign = ContentAlignment.MiddleRight,
                 Dock = DockStyle.Fill
             };
@@ -279,7 +279,7 @@ namespace Urenlijsten_App
             // Row 3
             lblTot = new Label
             {
-                Text = "tot",
+                Text = "tot (Zo)",
                 TextAlign = ContentAlignment.MiddleRight,
                 Dock = DockStyle.Fill
             };

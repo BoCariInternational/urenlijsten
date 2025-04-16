@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Timers;
+using DocumentFormat.OpenXml.Office2013.PowerPoint.Roaming;
 
 namespace CustomControls
 {
-    public partial class FilteredComboBox<TItem>: DataGridViewComboBoxEditingControl<FilteredComboBox<TItem> >, IDataGridViewUserControl
+    public partial class FilteredComboBox<TItem> : DataGridViewComboBoxEditingControl<FilteredComboBox<TItem>>, IDataGridViewUserControl
     {
+        public static List<TItem> _projectItems;
         private const int FILTER_DELAY_MS = 500; // Configurable delay
         private List<TItem> _sourceList;
         private System.Timers.Timer _filterTimer;
@@ -30,28 +32,28 @@ namespace CustomControls
             this.LostFocus += OnLostFocus;
         }
 
-
         public void InitControl(object value)
         {
-            ;
+
+            this.DataSource = _projectItems;
+            ApplyFilter(string.Empty);
         }
         public string GetFormattedValue(object value)
         {
-            return "Blah";
+            return value == null ? string.Empty : value.ToString(); // Return the formatted value as a string
         }
 
         // Property for the source list
-        
+
         public List<TItem> SourceList
         {
             get => _sourceList;
             set
             {
                 _sourceList = value;
-                ApplyFilter(string.Empty); // Initialize with full list
+                ApplyFilter(string.Empty); // Initialize with full list  //RR!! value uit grid
             }
         }
-        
 
         // Gets the currently selected item of type T
         // public new T SelectedItem => (T)base.SelectedItem;
@@ -142,7 +144,7 @@ namespace CustomControls
 
         public void ApplyFilter(string filterText)
         {
-            if (_sourceList == null || _isFilteringInProgress) return;
+            if (_sourceList == null || _isFilteringInProgress) return; //_sourelist is overbodig, gebruik _projectitems
 
             // Don't re-filter if the text hasn't changed
             if (filterText == _lastFilterText) return;

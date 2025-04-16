@@ -101,6 +101,7 @@ namespace CustomControls
     public class PanelUren : Panel
     {
         public DataGridView dv;
+        private DataGridViewCheckedComboBoxColumn columnProjectType = null; //RR!
         // In dv:
         private int colMa;
         private int colTotal;
@@ -130,7 +131,10 @@ namespace CustomControls
             public string description { get; set; }
 
             public string ToString() => $"{projectCode} - {description}";
-            public string ToStringShort() => $"{projectCode}";
+            public string ToStringShort()
+            {
+                return $"{projectCode}";
+            }
         }
 
         public class ProjectData  // root node for json met project codes
@@ -200,6 +204,8 @@ namespace CustomControls
             {
                 project.projectTypeInt = project.projectCode.GetHashCode();
             }
+
+            FilteredComboBox<ProjectItem>._projectItems = projectDataJson.allProjects;
         }
 
         private void InitializeComponents()
@@ -356,7 +362,7 @@ namespace CustomControls
             {
                 Name = "Urencode",
                 HeaderText = "Urencode",
-                CellTemplate = new FilteredComboBoxCell<ProjectItem>()
+                CellTemplate = new FilteredComboBoxCell<ProjectItem>(),
             };
             dv.Columns.Add(columnProjectNumber);
 
@@ -676,26 +682,7 @@ namespace CustomControls
             }
             else if (columnName == "Urencode" && e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
             {
-                var editingControl = dv.EditingControl as CheckedComboBox;
-
-                if (editingControl != null)
-                {
-                    var selectedTypes = editingControl.GetCheckedValues();
-                    var selectedTypeInts = selectedTypes
-                        .Select(type => type.GetHashCode())
-                        .ToList();
-
-                    comboProjectCode.DataSource = projectDataJson.allProjects
-                        .Where(project => selectedTypeInts.Contains(project.projectTypeInt))
-                        .ToList();
-                }
-                else
-                {
-                    comboProjectCode.DataSource = projectDataJson.allProjects.ToList();
-                }
-
-                comboProjectCode.DisplayMember = "ToString";
-                comboProjectCode.ValueMember = "ProjectCode";
+                ; //DataSource = null //RR!!
             }
 
             if ((columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||

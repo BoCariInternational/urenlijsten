@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace CustomControls
 {
-    public partial class FilteredComboBox<T> : ComboBox, IDataGridViewEditingControl
+    public partial class FilteredComboBox<TItem> : DataGridViewComboBoxEditingControl<FilteredComboBox<TItem>>, IDataGridViewUserControl
     {
         private DataGridView internalDataGridView;
         private bool valueChanged;
