@@ -15,6 +15,7 @@ namespace CustomControls
 
 
     public class FilteredComboBoxCell<TItem> : DataGridViewComboBoxCell
+        where TItem : class
     {
         private object _cellValue;
 
@@ -28,7 +29,7 @@ namespace CustomControls
         {
             if (value != null && this.DataGridView.EditingControl is FilteredComboBox<TItem> control)
             {
-                _cellValue = value; // Bewaar de waarde voor later gebruik
+                _cellValue = value; // Bewaar de waarde voor later gebruik  //RR!! ik gebruik cell.Value van datagrid
                 return control.GetFormattedValue(value);
             }
             else

@@ -5,14 +5,18 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Timers;
 using DocumentFormat.OpenXml.Office2013.PowerPoint.Roaming;
+using System.Diagnostics;
+using System.Linq.Expressions;
 
 namespace CustomControls
 {
-    public partial class FilteredComboBox<TItem> : DataGridViewComboBoxEditingControl<FilteredComboBox<TItem>>, IDataGridViewUserControl
+    public partial class FilteredComboBox<TItem> : DataGridViewComboBoxEditingControl<FilteredComboBox<TItem>>
+        where TItem : class
     {
         public static List<TItem> _projectItems;
         private const int FILTER_DELAY_MS = 500; // Configurable delay
         private List<TItem> _sourceList;
+        private List<TItem> filteredItems;
         private System.Timers.Timer _filterTimer;
         private string _lastFilterText = string.Empty;
         private bool _isFilteringInProgress = false;
@@ -34,55 +38,99 @@ namespace CustomControls
 
         public void InitControl(object value)
         {
-            DataSource = _projectItems;
-            ApplyFilter(string.Empty);
-            this.DisplayMember = "ToString";
-            this.ValueMember = "GetItem";
+            DataSource = null;
         }
+
         public string GetFormattedValue(object value)
         {
             return value == null ? string.Empty : value.ToString(); // Return the formatted value as a string
         }
 
-        // Gets the currently selected item of type T
-        // public new T SelectedItem => (T)base.SelectedItem;
+        // Gets the currently selected item of type TItem
+        public TItem? SelectedTItem => base.SelectedItem as TItem;
 
         private void OnTextChanged(object sender, EventArgs e)
         {
-            // Reset the timer on each keystroke
-            _filterTimer.Stop();
+            if (this._isFilteringInProgress)
+                return;
 
-            if (!string.IsNullOrEmpty(this.Text))
+            if (this.IsDisposed || !this.IsHandleCreated)
+                return;
+
+            try
             {
-                _filterTimer.Start();
+                // Reset the timer on each keystroke
+                _filterTimer.Stop();
 
-                // Auto-open dropdown if not already open
-                if (!this.DroppedDown)
+                if (!string.IsNullOrEmpty(this.Text))
                 {
-                    this.DroppedDown = true;
+                    _filterTimer.Start();
+
+                    // Auto-open dropdown if not already open
+                    if (!this.DroppedDown)
+                    {
+                        this.DroppedDown = true;
+                    }
+                }
+                else
+                {
+                    ApplyFilter(string.Empty);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                ApplyFilter(string.Empty);
+                ;
             }
+        }
+
+        protected override void OnDropDown(EventArgs e)
+        {
+            if (this.IsDisposed || !this.IsHandleCreated)
+                return;
+
+            //base.OnDropDown(e);
+
+            // Add debugging or logging here
+            Debug.WriteLine("Dropdown expanded");
+            Debug.WriteLine($"Text: {this.Text}");
+            Debug.WriteLine($"Items count: {this.Items.Count}");
+            Debug.WriteLine($"DataSource: {this.DataSource}");
         }
 
         private void OnFilterTimerElapsed(object sender, ElapsedEventArgs e)
         {
-            // This runs on a timer thread, so we need to invoke on the UI thread
+            if (this.IsDisposed || !this.IsHandleCreated)
+                return;
+
+            // Marshal to the GUI thread
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(() => ApplyFilter(this.Text)));
+                this.Invoke(new Action(() =>
+                {
+                    // Check again on the GUI thread
+                    if (this.IsDisposed || !this.IsHandleCreated)
+                        return;
+
+                    // Access Text safely
+                    string text = this.Text;
+                    ApplyFilter(text);
+                }));
             }
             else
             {
+                // Already on the GUI thread, check state
+                if (this.IsDisposed || !this.IsHandleCreated)
+                    return;
+
                 ApplyFilter(this.Text);
             }
         }
 
         private void OnKeyDown(object sender, KeyEventArgs e) // Event handler
         {
+            if (this.IsDisposed || !this.IsHandleCreated)
+                return;
+
             switch (e.KeyCode)
             {
                 case Keys.Up:
@@ -109,6 +157,9 @@ namespace CustomControls
                         //→ Als e.Cancel = true: stopt het proces
                         //3. DataGridView.CellValidated                       // Na succesvolle validatie
                         //4. DataGridView.CellEndEdit                         // Finalisatie
+
+                        // Note: validatie vind plaats TIJDENS EndEdit.
+                        // Als CellValidating (e.Cancel = true) oplevert blijven we in edit mode.
                         e.Handled = true;
                     }
                     break;
@@ -127,7 +178,7 @@ namespace CustomControls
             // Dus DataGridViewComboBoxEditingControl<FilteredComboBox<TItem> sluist het door naar ComboBox.
             if (!e.Handled)
             {
-                base.OnKeyDown(e);
+                //base.OnKeyDown(e);
             }
         }
 
@@ -136,12 +187,16 @@ namespace CustomControls
             _filterTimer.Stop();
         }
 
-        public void ApplyFilter(string filterText)
+        public void ApplyFilter(string filterText, bool skipFocus = false)
         {
-            if (_projectItems == null || _isFilteringInProgress) return; //_sourelist is overbodig, gebruik _projectitems
-
-            // Don't re-filter if the text hasn't changed
-            if (filterText == _lastFilterText) return;
+            if (_isFilteringInProgress
+            || _projectItems == null
+            || !this.IsHandleCreated
+            || !(this.Focused || skipFocus)
+            || (filterText == _lastFilterText && DataSource != null))
+            {
+                return;
+            }
 
             _isFilteringInProgress = true;
             try
@@ -155,11 +210,10 @@ namespace CustomControls
 
                 var regex = new Regex(regexPattern, RegexOptions.IgnoreCase);
 
-                var filteredItems = _projectItems
+                filteredItems = _projectItems
                     .Where(item => regex.IsMatch(item.ToString()))
                     .ToList();
 
-                this.BeginUpdate();
                 try
                 {
                     this.DataSource = null;
@@ -168,28 +222,22 @@ namespace CustomControls
                     if (filteredItems.Count > 0)
                     {
                         this.DataSource = filteredItems;
-                        this.SelectedIndex = -1; // Reset selection
-                        this.Text = filterText;  // Set the text to the filter text
-
-                        if (filteredItems.Count == 1)
-                        {
-                            var e = new KeyEventArgs(Keys.Enter);
-                            this.OnKeyDown(e);
-                            // Dit triggert alleen mijn eigen override van OnKeyDown, 
-                            // niet eventuele event handlers van buitenaf of andere events zoals KeyPress
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(filterText)
-                        && filteredItems.Count > 1
-                        && this.Focused)
-                    {
-                        this.DroppedDown = true;
                     }
                 }
                 finally
                 {
-                    this.EndUpdate();
+                    this.SelectedIndex = -1; // Reset selection
+                    this.Text = filterText;  // Set the text to the filter text
+                    this.DisplayMember = ""; //"ToString";
+                    this.ValueMember = "Item";
+
+                    if (filteredItems.Count == 1)
+                    {
+                        var e = new KeyEventArgs(Keys.Enter);
+                        this.OnKeyDown(e);
+                        // Dit triggert alleen mijn eigen override van OnKeyDown, 
+                        // niet eventuele event handlers van buitenaf of andere events zoals KeyPress
+                    }
                 }
             }
             finally

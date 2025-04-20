@@ -398,12 +398,18 @@ namespace CustomControls
 
         private void OpenDropdown()
         {
-            PositionDropdown();
-            _panelDropDown.Show();
-            _panelDropDown.BringToFront();
-            _dropdownCloseTimer.Interval = 1000; // Willekeurig
-            _dropdownCloseTimer.Enabled = true;
-            RestartDropdownCloseTimer();    // Start timer voor eerste keer.
+            try
+            {
+                PositionDropdown();
+                _panelDropDown.Show();
+                _panelDropDown.BringToFront();
+                _dropdownCloseTimer.Enabled = true;
+                RestartDropdownCloseTimer();    // Start timer voor eerste keer.
+            }
+            catch (Exception ex)
+            {
+                ;
+            }
         }
 
         private void CloseDropdown()

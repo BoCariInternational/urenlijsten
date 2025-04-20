@@ -11,13 +11,21 @@ using ClosedXML.Excel;
 //using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
 using CustomControls;
+using static Urenlijsten_App.PanelUren;
+using DocumentFormat.OpenXml.Spreadsheet;
+using System.Runtime.CompilerServices;
 
 
 // Vereiste interfaces
 public interface IShortNameable
 {
-    string ToString();      // Lange naam voor checkboxes
-    string ToStringShort(); // Korte naam voor textbox
+    //string ToString();      // Lange naam voor checkboxes
+    public interface IShortNameable
+    {
+        // Override ToString geeft lange representatie.
+        string ShortString { get; }  // Property voor korte string
+        ProjectItem Item { get; }    // Property voor het verkrijgen van het item
+    }
 }
 public static class MyExtensions
 {
@@ -129,21 +137,15 @@ namespace Urenlijsten_App
             [JsonProperty("Description")]
             public string description { get; set; }
 
-            //public string ToString() => $"{projectCode} - {description}";
-            public string ToString()
+            public override string ToString()
             {
                 return $"{projectCode} - {description}";
             }
 
-            public string ToStringShort()
-            {
-                return $"{projectCode}";
-            }
+            public string ShortString => $"{projectCode}";
 
-            public ProjectItem GetItem()
-            {
-                return this;
-            }
+            // De Item property die vereist is volgens de interface
+            public ProjectItem Item => this;
         }
 
         public class ProjectData  // root node for json met project codes
@@ -367,11 +369,19 @@ namespace Urenlijsten_App
             //dv.Columns.Add(columnProjectType);
 
             // Urencode (FilteredComboBox)
-            var columnProjectNumber = new ColumnUrenCode
+            var columnProjectNumber = new DataGridViewComboBoxColumn
             {
                 Name = "Urencode",
                 HeaderText = "Urencode",
-                //RR! CellTemplate = new FilteredComboBoxCell<ProjectItem>(),
+                CellTemplate = new FilteredComboBoxCell<ProjectItem>(),
+
+                /* Een DataGridViewCell zelf heeft geen directe DisplayMember en ValueMember
+                 * eigenschappen zoals een ComboBox of een ListControl.
+                 * In een DataGridView kun je echter een kolom van het type DataGridViewComboBoxColumn
+                 * gebruiken, en deze kolom heeft wel de eigenschappen DisplayMember en ValueMember. 
+                 * Deze eigenschappen bepalen hoe de gegevens in de cel worden weergegeven en welke waarde
+                 * wordt opgeslagen.
+                 */ 
             };
             dv.Columns.Add(columnProjectNumber);
 
@@ -579,13 +589,7 @@ namespace Urenlijsten_App
             // Controleer of de Delete-toets is ingedrukt en of er een cel is geselecteerd
             if (e.KeyCode == Keys.Delete && dv.CurrentCell != null)
             {
-                // Haal de geselecteerde cel op
                 DataGridViewCell selectedCell = dv.CurrentCell;
-
-                // Voer hier de actie uit die je wilt uitvoeren bij het drukken op Delete
-                // wanneer een cel is geselecteerd.
-
-                // Voorbeeld 1: De waarde van de cel leegmaken
                 selectedCell.Value = "";
                 ComputeTotals(selectedCell.RowIndex, selectedCell.ColumnIndex);
             }
@@ -668,49 +672,70 @@ namespace Urenlijsten_App
 
         private void dv_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
-            if (dv.CurrentCell == null) return;
-            string columnName = dv.Columns[dv.CurrentCell.ColumnIndex].Name;
-            editControl = e.Control;
-
-            if (columnName == "Projecttype" && e.Control is CheckedComboBox comboProjectType)
+            //!!! At this point, the editing control is not complete, so for instance,
+            // you can't tell a combobox to show it's dropdown...
+            // Really, MS did think this through a lot.
+            if (dv.CurrentCell == null) 
+                return;
+            try
             {
-                //RR!! comboProjectType.SetDataSource(shortableProjectTypes);
-                var cellValue = dv.Rows[dv.CurrentCell.RowIndex].Cells[dv.CurrentCell.ColumnIndex].Value; //RR! Hack
-                if (cellValue is string combinedValue && !string.IsNullOrEmpty(combinedValue))
-                {
-                    string[] parts = combinedValue.Split(';');
-                    if (parts.Length == 2)
-                    {
-                        //string shortNames = parts[0];
-                        string longNames = parts[1];
-                        comboProjectType.SetCheckedItems(longNames.Split(',').ToList());
+                string columnName = dv.Columns[dv.CurrentCell.ColumnIndex].Name;
+                DataGridViewCell cell = dv.Rows[dv.CurrentCell.RowIndex].Cells[dv.CurrentCell.ColumnIndex];
 
-                        //RR!! set flag monitoring
-                    }
+                switch (columnName)
+                {
+                    case "Projecttype":
+                        if (e.Control is CheckedComboBox comboProjectType)
+                        {
+                            if (cell.Value is string combinedValue && !string.IsNullOrEmpty(combinedValue))
+                            {
+                                string[] parts = combinedValue.Split(';');
+                                if (parts.Length == 2)
+                                {
+                                    string longNames = parts[1];
+                                    comboProjectType.SetCheckedItems(longNames.Split(',').ToList());
+                                    // RR!! set flag monitoring
+                                }
+                            }
+                        }
+                        break;
+
+                    case "Urencode":
+                        if (e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
+                        {
+                            ProjectItem item = cell?.Value as ProjectItem;
+                            comboProjectCode.SelectedItem = item;
+                            string text = item?.ToString() ?? string.Empty;
+                            comboProjectCode.ApplyFilter(text, true);
+                        }
+                        break;
+
+                    case "Ma":
+                    case "Di":
+                    case "Wo":
+                    case "Do":
+                    case "Vr":
+                    case "Za":
+                    case "Zo":
+                        if (e.Control is TextBox dayTextBox)
+                        {
+                            dayTextBox.KeyPress -= TextBox_KeyPress_DayColumns;
+                            dayTextBox.KeyPress += TextBox_KeyPress_DayColumns;
+                        }
+                        break;
+
+                    case "kmDienstreis":
+                        if (e.Control is TextBox kmTextBox)
+                        {
+                            kmTextBox.KeyPress -= KmTextBox_KeyPress;
+                            kmTextBox.KeyPress += KmTextBox_KeyPress;
+                        }
+                        break;
                 }
             }
-            else if (columnName == "Urencode" && e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
+            catch (Exception ex)
             {
-                ; //DataSource = null //RR!!
-                comboProjectCode.DisplayMember = "ToString"; //RR!!!
-                comboProjectCode.ValueMember = "ProjectCode";
-            }
-
-            if ((columnName == "Ma" || columnName == "Di" || columnName == "Wo" ||
-                 columnName == "Do" || columnName == "Vr" || columnName == "Za" || columnName == "Zo")
-                && e.Control is TextBox dayTextBox)
-            {
-                dayTextBox.KeyPress += (s, ev) =>
-                {
-                    dayTextBox.KeyPress -= TextBox_KeyPress_DayColumns;
-                    dayTextBox.KeyPress += TextBox_KeyPress_DayColumns;
-                };
-            }
-
-            if (columnName == "kmDienstreis" && e.Control is TextBox kmTextBox)
-            {
-                kmTextBox.KeyPress -= KmTextBox_KeyPress;
-                kmTextBox.KeyPress += KmTextBox_KeyPress;
+                ;
             }
         }
 
@@ -739,70 +764,90 @@ namespace Urenlijsten_App
 
         private void dv_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
+            //!!!  At this point, the edit control is already gone...
+            // Really, MS did think this through a lot.
+            // Gebruik DataGridView.CellValidated:
             if (e.IsInvalidCell()) return;
-
-            string columnName = dv.Columns[e.ColumnIndex].Name;
-            DataGridViewCell cell = dv.Rows[e.RowIndex].Cells[e.ColumnIndex];
-            string value = cell.Value?.ToString();
-
-            switch (columnName)
+            try
             {
-                case "Projecttype":
-                    if (dv.EditingControl is CheckedComboBox combo1)
-                    {
-                        if (combo1.IsPanelVisible)
-                        {
-                            return; // Verlaat de event handler als het dropdown panel nog zichtbaar is
-                        }
-                        //RR!!cell.Value = ((DataGridViewCheckedComboBoxCell)cell).GetCombinedValue(combo1);
-                    }
-                    else if (editControl is CheckedComboBox combo2)
-                    {
-                        if (combo2.IsPanelVisible)
-                        {
-                            return; // Verlaat de event handler als het dropdown panel nog zichtbaar is
-                        }
-                        cell.Value = combo2.GetCombinedValue();
-                    }
-                    else
-                    {
-                        // Debug.Assert(false);
-                        cell.Value = "Leeg"; // string.Empty;
-                    }
+                string columnName = dv.Columns[e.ColumnIndex].Name;
+                DataGridViewCell cell = dv.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                string value = cell.Value?.ToString();
 
-                    break;
-
-                case "Ma":
-                case "Di":
-                case "Wo":
-                case "Do":
-                case "Vr":
-                case "Za":
-                case "Zo":
-                    if (string.IsNullOrWhiteSpace(value))
-                    {
-                        cell.Value = "";
-                        ComputeTotals(e.RowIndex, e.ColumnIndex);
-                    }
-                    else if (!string.IsNullOrEmpty(value))
-                    {
-                        string valueToParse = value.EndsWith(",") ? value + "5" : value;
-                        if (valueToParse.TryParseDoubleExt(out double hours))
+                switch (columnName)
+                {
+                    case "Projecttype":
+                        if (dv.EditingControl is CheckedComboBox combo1)
                         {
-                            cell.Value = hours;
+                            if (combo1.IsPanelVisible)
+                            {
+                                return; // Verlaat de event handler als het dropdown panel nog zichtbaar is
+                            }
+                            //RR!!cell.Value = ((DataGridViewCheckedComboBoxCell)cell).GetCombinedValue(combo1);
+                        }
+                        else if (editControl is CheckedComboBox combo2)
+                        {
+                            if (combo2.IsPanelVisible)
+                            {
+                                return; // Verlaat de event handler als het dropdown panel nog zichtbaar is
+                            }
+                            cell.Value = combo2.GetCombinedValue();
+                        }
+                        else
+                        {
+                            // Debug.Assert(false);
+                            cell.Value = "Leeg"; // string.Empty;
+                        }
+
+                        break;
+                    case "Urencode":
+                        // At this point, the edit control is already gone...
+                        cell.Value = null;
+                        if (dv.EditingControl is FilteredComboBox<ProjectItem> comboProjectCode)
+                        {
+                            if (comboProjectCode.SelectedIndex >= 0)
+                            {
+                                ProjectItem item = comboProjectCode.SelectedItem as ProjectItem;
+                                cell.Value = item;
+                            }
+                        }
+                        break;
+                    case "Ma":
+                    case "Di":
+                    case "Wo":
+                    case "Do":
+                    case "Vr":
+                    case "Za":
+                    case "Zo":
+                        if (string.IsNullOrWhiteSpace(value))
+                        {
+                            cell.Value = "";
                             ComputeTotals(e.RowIndex, e.ColumnIndex);
                         }
                         else
                         {
-                            ShowValidationError($"Ongeldige invoer: '{value}'. Voer een getal in (bv. 1,5 of 2).", e.RowIndex, columnName);
-                            cell.Value = value;
+                            string valueToParse = value.EndsWith(",") ? value + "5" : value;
+                            if (valueToParse.TryParseDoubleExt(out double hours))
+                            {
+                                cell.Value = hours;
+                                ComputeTotals(e.RowIndex, e.ColumnIndex);
+                            }
+                            else
+                            {
+                                ShowValidationError($"Ongeldige invoer: '{value}'. Voer een getal in (bv. 1,5 of 2).", e.RowIndex, columnName);
+                                cell.Value = value;
+                            }
                         }
-                    }
-                    break;
+                        break;
 
-                case "kmDienstreis":
-                    ComputeTotalColumn(e.ColumnIndex);
-                    break;
+                    case "kmDienstreis":
+                        ComputeTotalColumn(e.ColumnIndex);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                ;
             }
         }
         #endregion dv events
