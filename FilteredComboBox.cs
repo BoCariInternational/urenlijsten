@@ -13,17 +13,20 @@ namespace CustomControls
     public partial class FilteredComboBox<TItem> : DataGridViewComboBoxEditingControl<FilteredComboBox<TItem>>
         where TItem : class
     {
-        public static List<TItem> _projectItems;
+        public static List<TItem> s_projectItems;
+        public static FilteredComboBox<TItem> s_EditControl;
+        public static TItem s_selectedItem;
+
         private const int FILTER_DELAY_MS = 500; // Configurable delay
         private List<TItem> _sourceList;
         private List<TItem> filteredItems;
         private System.Timers.Timer _filterTimer;
         private string _lastFilterText = string.Empty;
         private bool _isFilteringInProgress = false;
-
+  
         public FilteredComboBox()
         {
-            this.DropDownStyle = ComboBoxStyle.DropDown;
+            this.DropDownStyle = ComboBoxStyle.DropDown;   // User can enter values in the TextBox area.
             this.AutoCompleteMode = AutoCompleteMode.None; // We handle this ourselves
 
             // Set up the filter delay timer
@@ -31,25 +34,31 @@ namespace CustomControls
             _filterTimer.AutoReset = false;
             _filterTimer.Elapsed += OnFilterTimerElapsed;
 
-            this.TextChanged += OnTextChanged;
-            this.KeyDown += OnKeyDown;
-            this.LostFocus += OnLostFocus;
+            s_EditControl = null;
+            s_selectedItem = null;
         }
 
-        public void InitControl(object value)
+        public void OnSelectionChangeCommitted(object sender, EventArgs e)
+        {
+            s_EditControl = this;
+            s_selectedItem = this.SelectedTItem;
+            Debug.WriteLine($"OnSelectionChangeCommitted s_selectedItem: {s_selectedItem?.ToString() ?? "null"}");
+        }
+
+        public void InitControl()
         {
             DataSource = null;
         }
 
         public string GetFormattedValue(object value)
         {
-            return value == null ? string.Empty : value.ToString(); // Return the formatted value as a string
+            return value == null ? string.Empty : value.ToString();
         }
 
         // Gets the currently selected item of type TItem
         public TItem? SelectedTItem => base.SelectedItem as TItem;
 
-        private void OnTextChanged(object sender, EventArgs e)
+        protected override void OnTextChanged(EventArgs e)
         {
             if (this._isFilteringInProgress)
                 return;
@@ -57,44 +66,22 @@ namespace CustomControls
             if (this.IsDisposed || !this.IsHandleCreated)
                 return;
 
-            try
-            {
-                // Reset the timer on each keystroke
-                _filterTimer.Stop();
+            //base.OnTextChanged(e);
 
-                if (!string.IsNullOrEmpty(this.Text))
-                {
-                    _filterTimer.Start();
+            // Reset the timer on each keystroke
+            _filterTimer.Stop();
+            _filterTimer.Start();
 
-                    // Auto-open dropdown if not already open
-                    if (!this.DroppedDown)
-                    {
-                        this.DroppedDown = true;
-                    }
-                }
-                else
-                {
-                    ApplyFilter(string.Empty);
-                }
-            }
-            catch (Exception ex)
+            // Auto-open dropdown if not already open
+            if (!this.DroppedDown)
             {
-                ;
+                this.DroppedDown = true;
             }
         }
 
         protected override void OnDropDown(EventArgs e)
         {
-            if (this.IsDisposed || !this.IsHandleCreated)
-                return;
-
             //base.OnDropDown(e);
-
-            // Add debugging or logging here
-            Debug.WriteLine("Dropdown expanded");
-            Debug.WriteLine($"Text: {this.Text}");
-            Debug.WriteLine($"Items count: {this.Items.Count}");
-            Debug.WriteLine($"DataSource: {this.DataSource}");
         }
 
         private void OnFilterTimerElapsed(object sender, ElapsedEventArgs e)
@@ -112,13 +99,12 @@ namespace CustomControls
                         return;
 
                     // Access Text safely
-                    string text = this.Text;
-                    ApplyFilter(text);
+                    ApplyFilter(this.Text);
                 }));
             }
             else
             {
-                // Already on the GUI thread, check state
+                // Already on the GUI thread
                 if (this.IsDisposed || !this.IsHandleCreated)
                     return;
 
@@ -126,6 +112,7 @@ namespace CustomControls
             }
         }
 
+        /*
         private void OnKeyDown(object sender, KeyEventArgs e) // Event handler
         {
             if (this.IsDisposed || !this.IsHandleCreated)
@@ -143,6 +130,7 @@ namespace CustomControls
                 case Keys.Enter:
                     if (this.Items.Count > 0 && !string.IsNullOrEmpty(this.Text))
                     {
+                        Debug.WriteLine("OnKeyDown, Enter");
                         this.SelectedIndex = 0; // Auto-select top item
 
                         // Markeer dat er wijzigingen zijn
@@ -170,6 +158,10 @@ namespace CustomControls
                     //this.EditingControlDataGridView.EndEdit();  // De wijziging wordt NIET opgeslagen
                     e.Handled = false;                            // Laat de escape door om de dropdown te sluiten
                     break;
+
+                default: 
+                    e.Handled = true;
+                    break;
             }
 
             // Zonder de base.OnKeyDown(e) roep je de standaardverwerking van ComboBox niet aan
@@ -181,16 +173,20 @@ namespace CustomControls
                 //base.OnKeyDown(e);
             }
         }
+        */
 
-        private void OnLostFocus(object sender, EventArgs e)
+        protected override void OnLostFocus(EventArgs e)
         {
+            base.OnLostFocus(e);
+
             _filterTimer.Stop();
+            this.DroppedDown = false;
         }
 
         public void ApplyFilter(string filterText, bool skipFocus = false)
         {
             if (_isFilteringInProgress
-            || _projectItems == null
+            || s_projectItems == null
             || !this.IsHandleCreated
             || !(this.Focused || skipFocus)
             || (filterText == _lastFilterText && DataSource != null))
@@ -210,7 +206,7 @@ namespace CustomControls
 
                 var regex = new Regex(regexPattern, RegexOptions.IgnoreCase);
 
-                filteredItems = _projectItems
+                filteredItems = s_projectItems
                     .Where(item => regex.IsMatch(item.ToString()))
                     .ToList();
 
@@ -226,17 +222,19 @@ namespace CustomControls
                 }
                 finally
                 {
-                    this.SelectedIndex = -1; // Reset selection
-                    this.Text = filterText;  // Set the text to the filter text
-                    this.DisplayMember = ""; //"ToString";
-                    this.ValueMember = "Item";
-
+                    if (this.Text != filterText)
+                        this.Text = filterText;                 // Set the text to the filter text
                     if (filteredItems.Count == 1)
                     {
-                        var e = new KeyEventArgs(Keys.Enter);
-                        this.OnKeyDown(e);
-                        // Dit triggert alleen mijn eigen override van OnKeyDown, 
-                        // niet eventuele event handlers van buitenaf of andere events zoals KeyPress
+                        //if (this.Items.Count > 0)
+                        //    this.SelectedIndex = 0;           // Auto-select if only one item matches
+                        this.EditingControlValueChanged = true; // Markeer dat er wijzigingen zijn
+                        if (this.EditingControlDataGridView != null &&
+                            this.EditingControlDataGridView.IsCurrentCellInEditMode == true &&
+                            this.EditingControlDataGridView.EditingControl == this)
+                        {
+                            this.EditingControlDataGridView.EndEdit(); // Forceer validatie van de cel
+                        }
                     }
                 }
             }

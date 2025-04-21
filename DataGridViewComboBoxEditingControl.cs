@@ -1,12 +1,39 @@
+using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+
+
+public class TrapComboBox : ComboBox
+{
+    public new object? SelectedItem
+    {
+        get => base.SelectedItem;
+        set
+        {
+            System.Diagnostics.Debugger.Break(); // <--- hier knalt je debugger erin
+            base.SelectedItem = value;
+        }
+    }
+
+    public new int SelectedIndex
+    {
+        get => base.SelectedIndex;
+        set
+        {
+            System.Diagnostics.Debugger.Break();
+            base.SelectedIndex = value;
+        }
+    }
+}
 
 namespace CustomControls
 {
     // Basisklasse voor ComboBox-afgeleide controls
     // Uses CRTP, TDerived = FilteredComboBox
-    public abstract class DataGridViewComboBoxEditingControl<TDerived> : ComboBox,
+    public abstract class DataGridViewComboBoxEditingControl<TDerived> : TrapComboBox,
         IDataGridViewEditingControl
         where TDerived : DataGridViewComboBoxEditingControl<TDerived>
     {
@@ -61,23 +88,44 @@ namespace CustomControls
         // 4. Behavior Control (alphabetically sorted)
         public bool EditingControlWantsInputKey(Keys keyData, bool dataGridViewWantsInputKey)
         {
-            switch (keyData & Keys.KeyCode)
+            // bool dataGridViewWantsInputKey: geeft aan of de DataGridView vindt dat zijzelf die toets moet 
+            // verwerken (true = dat wil ze doen, false = ze laat het over aan jou, tenzij je zegt van niet).
+
+            // Sta alle toetsen toe die nodig zijn voor een volledige combobox ervaring
+            Keys keyCode = keyData & Keys.KeyCode;
+
+            switch (keyCode)
             {
-                case Keys.Back:
-                case Keys.Delete:
-                case Keys.Down:
-                case Keys.Enter:
-                case Keys.Escape:
+                // Cursorbeweging en tekstbewerking
                 case Keys.Left:
                 case Keys.Right:
-                case Keys.Space:
-                case Keys.Tab:
                 case Keys.Up:
+                case Keys.Down:
+                case Keys.Delete:
+                case Keys.Back:
+                case Keys.Space:
+
+                // Letters
+                case >= Keys.A and <= Keys.Z:
+
+                // Cijfers bovenin toetsenbord
+                case >= Keys.D0 and <= Keys.D9:
+
+                // Numpad cijfers
+                case >= Keys.NumPad0 and <= Keys.NumPad9:
                     return true;
+
+                // Laat deze aan de DataGridView
+                case Keys.Enter:
+                case Keys.Escape:
+                case Keys.Tab:
+                    return false;
+
                 default:
                     return !dataGridViewWantsInputKey;
             }
         }
+        
 
         public void PrepareEditingControlForEdit(bool selectAll)
         {

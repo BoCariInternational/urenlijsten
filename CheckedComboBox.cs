@@ -364,7 +364,7 @@ namespace CustomControls
             // Timer expired.
             // Dit betekent dat er geen gebruikersinteractie was met
             // de _checkedListBox: geen (de)selectie van checkboxes,
-            // geen verandering van selectedItem (pijltjestoetsen, muis).
+            // geen verandering van s_selectedItem (pijltjestoetsen, muis).
 
             // Dit maakt de timer one shot.
             if (!ContainsMouse())

@@ -155,9 +155,12 @@ namespace Urenlijsten_App
             {
                 Dock = DockStyle.Left,
                 Text = "Blah",
-                DataSource = new List<string> { "a", "b", "c" }
+                DataSource = new List<string> { "11", "12", "13", "21", "22", "23" },
+                AutoCompleteMode = AutoCompleteMode.None,
+                AutoCompleteSource = AutoCompleteSource.None,
             };
             panelVerlof.Controls.Add(ncb);
+            ncb.SelectionChangeCommitted += VerlofSelectionChangeCommitted;
 
             // RR! end test code
 
@@ -257,6 +260,16 @@ namespace Urenlijsten_App
                     return col;
             }
             return -1;
+        }
+
+        private void VerlofSelectionChangeCommitted(object sender, EventArgs e)
+        {
+            if (sender is ComboBox comboBox)
+            {
+                // Hier kun je de geselecteerde waarde gebruiken
+                string selectedValue = comboBox.SelectedItem.ToString();
+                MessageBox.Show($"Geselecteerde waarde: {selectedValue}");
+            }
         }
 
         private void BtnSubmit_Click(object sender, EventArgs e)

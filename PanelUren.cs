@@ -216,7 +216,7 @@ namespace Urenlijsten_App
                 project.projectTypeInt = project.projectCode.GetHashCode();
             }
 
-            FilteredComboBox<ProjectItem>._projectItems = projectDataJson.allProjects;
+            FilteredComboBox<ProjectItem>.s_projectItems = projectDataJson.allProjects;
         }
 
         private void InitializeComponents()
@@ -344,6 +344,18 @@ namespace Urenlijsten_App
         {
             // Maak kolom 0 onzichtbaar:
             dv.Columns[0].Visible = false;
+
+            // Binnen je AddColumns methode //RR!
+            var standardComboBoxColumn = new DataGridViewComboBoxColumn
+            {
+                Name = "StandaardTest", // Geef het een duidelijke naam
+                HeaderText = "Standaard CB",
+                // CellTemplate is standaard DataGridViewComboBoxCell
+            };
+            // Voeg items toe aan de kolom (deze items worden gebruikt in ALLE cellen van deze kolom)
+            standardComboBoxColumn.Items.AddRange("11", "12", "13", "21", "22", "23", "Optie A", "Optie B", "Optie C", "1A", "1B", "2A"); // Voor test met cijfers/letters
+
+            dv.Columns.Add(standardComboBoxColumn);
 
             // Klantnaam
             dv.Columns.Add(new DataGridViewTextBoxColumn
@@ -670,6 +682,11 @@ namespace Urenlijsten_App
         }
         */
 
+        public void StandaardCombo_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            ;
+        }
+
         private void dv_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
             //!!! At this point, the editing control is not complete, so for instance,
@@ -684,6 +701,20 @@ namespace Urenlijsten_App
 
                 switch (columnName)
                 {
+                    case "StandaardTest":
+                        if (e.Control is ComboBox comboBox)
+                        {
+                            // Zet de standaard auto-completion uit
+                            comboBox.AutoCompleteMode = AutoCompleteMode.None;
+                            comboBox.AutoCompleteSource = AutoCompleteSource.None;
+                            // Zet de geselecteerde waarde in de ComboBox
+                            string text = cell?.Value?.ToString() ?? string.Empty;
+                            comboBox.Text = text;
+
+                            comboBox.SelectionChangeCommitted -= StandaardCombo_SelectionChangeCommitted;
+                            comboBox.SelectionChangeCommitted += StandaardCombo_SelectionChangeCommitted;
+                        }
+                        break;
                     case "Projecttype":
                         if (e.Control is CheckedComboBox comboProjectType)
                         {
@@ -703,10 +734,17 @@ namespace Urenlijsten_App
                     case "Urencode":
                         if (e.Control is FilteredComboBox<ProjectItem> comboProjectCode)
                         {
+                            // *** Zet standaard auto-completion uit ***
+                            comboProjectCode.AutoCompleteMode = AutoCompleteMode.None;
+                            comboProjectCode.AutoCompleteSource = AutoCompleteSource.None;
+
                             ProjectItem item = cell?.Value as ProjectItem;
-                            comboProjectCode.SelectedItem = item;
+                            //comboProjectCode.SelectedItem = item; //RR!!
                             string text = item?.ToString() ?? string.Empty;
                             comboProjectCode.ApplyFilter(text, true);
+
+                            comboProjectCode.SelectionChangeCommitted -= comboProjectCode.OnSelectionChangeCommitted;
+                            comboProjectCode.SelectionChangeCommitted += comboProjectCode.OnSelectionChangeCommitted;
                         }
                         break;
 
@@ -743,22 +781,62 @@ namespace Urenlijsten_App
         {
             if (e.IsInvalidCell()) return;
             string columnName = dv.Columns[e.ColumnIndex].Name;
+            var cell = dv.Rows[e.RowIndex].Cells[e.ColumnIndex];
 
-            if (columnName == "kmDienstreis" && !string.IsNullOrEmpty(e.FormattedValue?.ToString()))
+            switch (columnName)
             {
-                if (int.TryParse(e.FormattedValue.ToString(), out int km))
-                {
-                    if (km >= 1000)
+                case "Urencode":
+                    
+                    if (dv.EditingControl is FilteredComboBox<ProjectItem> comboProjectCode)
                     {
-                        e.Cancel = true;
-                        MessageBox.Show("Het aantal kilometers mag niet hoger zijn dan 999.");
+                        if (comboProjectCode != FilteredComboBox<ProjectItem>.s_EditControl)
+                        {
+                            e.Cancel = true;
+                            return;
+                        }
+
+                        var selectedItem = comboProjectCode.SelectedItem as ProjectItem;
+                        if (selectedItem != FilteredComboBox<ProjectItem>.s_selectedItem)
+{
+                            e.Cancel = true;
+                            return;
+                        }
+
+                        if (selectedItem != null)
+                        {
+                            // Set the cell value to the selected ProjectItem
+                            ProjectItem item = comboProjectCode.SelectedItem as ProjectItem;
+                            cell.Value = item;
+                            e.Cancel = false;
+                        }
+                        else
+                        {
+                            // Clear the cell value if no item is selected
+                            cell.Value = null;
+                            e.Cancel = true;
+                        }
                     }
-                }
-                else
-                {
-                    e.Cancel = true;
-                    MessageBox.Show("Voer alleen hele getallen in voor km dienstreis.");
-                }
+                    break;
+                case "kmDienstreis":
+                    if (!string.IsNullOrEmpty(e.FormattedValue?.ToString()))
+                    {
+                        if (int.TryParse(e.FormattedValue.ToString(), out int km))
+                        {
+                            if (km >= 1000)
+                            {
+                                e.Cancel = true;
+                                MessageBox.Show("Het aantal kilometers mag niet hoger zijn dan 999.");
+                            }
+                        }
+                        else
+                        {
+                            e.Cancel = true;
+                            MessageBox.Show("Voer alleen hele getallen in voor km dienstreis.");
+                        }
+                    }
+                    break;
+
+                    // Add other cases here if needed
             }
         }
 
@@ -771,7 +849,7 @@ namespace Urenlijsten_App
             try
             {
                 string columnName = dv.Columns[e.ColumnIndex].Name;
-                DataGridViewCell cell = dv.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                var cell = dv.Rows[e.RowIndex].Cells[e.ColumnIndex];
                 string value = cell.Value?.ToString();
 
                 switch (columnName)
@@ -800,18 +878,11 @@ namespace Urenlijsten_App
                         }
 
                         break;
+
                     case "Urencode":
-                        // At this point, the edit control is already gone...
-                        cell.Value = null;
-                        if (dv.EditingControl is FilteredComboBox<ProjectItem> comboProjectCode)
-                        {
-                            if (comboProjectCode.SelectedIndex >= 0)
-                            {
-                                ProjectItem item = comboProjectCode.SelectedItem as ProjectItem;
-                                cell.Value = item;
-                            }
-                        }
+                        Debug.WriteLine("cell value", cell.Value?.ToString());
                         break;
+                    
                     case "Ma":
                     case "Di":
                     case "Wo":

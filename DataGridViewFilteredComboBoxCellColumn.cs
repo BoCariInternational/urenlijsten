@@ -7,7 +7,7 @@ namespace CustomControls
 {
     public interface IDataGridViewUserControl
     {
-        public void InitControl(object value);
+        public void InitControl();
         public string GetFormattedValue(object value);
     };
 
@@ -17,8 +17,6 @@ namespace CustomControls
     public class FilteredComboBoxCell<TItem> : DataGridViewComboBoxCell
         where TItem : class
     {
-        private object _cellValue;
-
         protected override object GetFormattedValue(
             object value,
             int rowIndex,
@@ -29,12 +27,10 @@ namespace CustomControls
         {
             if (value != null && this.DataGridView.EditingControl is FilteredComboBox<TItem> control)
             {
-                _cellValue = value; // Bewaar de waarde voor later gebruik  //RR!! ik gebruik cell.Value van datagrid
                 return control.GetFormattedValue(value);
             }
             else
             {
-                _cellValue = null;
                 return string.Empty;
             }
         }
@@ -48,7 +44,7 @@ namespace CustomControls
 
             if (DataGridView.EditingControl is FilteredComboBox<TItem> control)
             {
-                control.InitControl(_cellValue);
+                control.InitControl();
             }
         }
 
@@ -65,7 +61,6 @@ namespace CustomControls
         {
             var clone = (FilteredComboBoxCell<TItem>)base.Clone();
             // Kopieer hier eventuele custom cell properties
-            clone._cellValue = _cellValue;
             return clone;
         }
     }
